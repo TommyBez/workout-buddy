@@ -60,6 +60,23 @@ interface BodyMetricRow {
   thigh_cm: number | string | null
 }
 
+interface BodyMetricChanges {
+  weight_kg: number | null
+  body_fat_pct: number | null
+  waist_cm: number | null
+  chest_cm: number | null
+  bicep_cm: number | null
+  thigh_cm: number | null
+}
+
+interface PhaseReadinessSummary {
+  ready_for_next_phase: boolean
+  reasons: string[]
+  adherence_ratio: number | null
+  average_difficulty: number | null
+  difficulty_trend: "up" | "down" | "flat" | "unknown"
+}
+
 function toNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value
   if (typeof value === "string" && value.trim().length > 0) {
@@ -72,6 +89,19 @@ function toNumber(value: unknown): number | null {
 function round(value: number, digits = 1): number {
   const multiplier = 10 ** digits
   return Math.round(value * multiplier) / multiplier
+}
+
+function average(values: number[]): number | null {
+  if (values.length === 0) return null
+  return values.reduce((sum, value) => sum + value, 0) / values.length
+}
+
+function trendDirection(start: number | null, end: number | null): "up" | "down" | "flat" | "unknown" {
+  if (start === null || end === null) return "unknown"
+  const delta = end - start
+  if (delta >= 0.25) return "up"
+  if (delta <= -0.25) return "down"
+  return "flat"
 }
 
 function toStringArray(value: unknown): string[] {
@@ -118,6 +148,12 @@ function summarizeWorkoutLogs(logs: WorkoutLogRow[], daysPerWeek: number) {
   const expectedWorkouts = daysPerWeek * LOOKBACK_MONTHS * 4
   const adherenceRatio = expectedWorkouts > 0 ? logs.length / expectedWorkouts : null
 
+  const firstHalfDifficulties = difficultyValues.slice(0, Math.floor(difficultyValues.length / 2))
+  const secondHalfDifficulties = difficultyValues.slice(Math.floor(difficultyValues.length / 2))
+  const firstHalfDifficultyAvg = average(firstHalfDifficulties)
+  const secondHalfDifficultyAvg = average(secondHalfDifficulties)
+  const difficultyTrend = trendDirection(firstHalfDifficultyAvg, secondHalfDifficultyAvg)
+
   return {
     total_workouts: logs.length,
     expected_workouts: expectedWorkouts,
@@ -130,6 +166,11 @@ function summarizeWorkoutLogs(logs: WorkoutLogRow[], daysPerWeek: number) {
       difficultyValues.length === 0
         ? null
         : round(difficultyValues.reduce((sum, value) => sum + value, 0) / difficultyValues.length),
+    first_half_avg_difficulty:
+      firstHalfDifficultyAvg === null ? null : round(firstHalfDifficultyAvg, 2),
+    second_half_avg_difficulty:
+      secondHalfDifficultyAvg === null ? null : round(secondHalfDifficultyAvg, 2),
+    difficulty_trend: difficultyTrend,
     top_logged_days: Array.from(dayCounts.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5)
@@ -158,6 +199,12 @@ function summarizeBodyMetrics(metrics: BodyMetricRow[]) {
   const latestBodyFat = toNumber(latest.body_fat_pct)
   const firstWaist = toNumber(first.waist_cm)
   const latestWaist = toNumber(latest.waist_cm)
+  const firstChest = toNumber(first.chest_cm)
+  const latestChest = toNumber(latest.chest_cm)
+  const firstBicep = toNumber(first.bicep_cm)
+  const latestBicep = toNumber(latest.bicep_cm)
+  const firstThigh = toNumber(first.thigh_cm)
+  const latestThigh = toNumber(latest.thigh_cm)
 
   return {
     entries: metrics.length,
@@ -185,6 +232,18 @@ function summarizeBodyMetrics(metrics: BodyMetricRow[]) {
         firstWaist !== null && latestWaist !== null
           ? round(latestWaist - firstWaist, 2)
           : null,
+      chest_cm:
+        firstChest !== null && latestChest !== null
+          ? round(latestChest - firstChest, 2)
+          : null,
+      bicep_cm:
+        firstBicep !== null && latestBicep !== null
+          ? round(latestBicep - firstBicep, 2)
+          : null,
+      thigh_cm:
+        firstThigh !== null && latestThigh !== null
+          ? round(latestThigh - firstThigh, 2)
+          : null,
     },
   }
 }
@@ -194,6 +253,71 @@ function getExperienceLevel(value: string | null): "beginner" | "intermediate" |
     return value
   }
   return "intermediate"
+}
+
+function assessPhaseReadiness(params: {
+  goalType: string
+  workoutSummary: {
+    total_workouts: number
+    adherence_ratio: number | null
+    average_difficulty: number | null
+    difficulty_trend: "up" | "down" | "flat" | "unknown"
+  }
+  bodyChanges: BodyMetricChanges | null
+  daysPerWeek: number
+}): PhaseReadinessSummary {
+  const { goalType, workoutSummary, bodyChanges, daysPerWeek } = params
+  const reasons: string[] = []
+
+  const expectedMinimumWorkouts = Math.max(6, daysPerWeek * 4)
+  const consistentTraining =
+    workoutSummary.total_workouts >= expectedMinimumWorkouts &&
+    (workoutSummary.adherence_ratio ?? 0) >= 0.7
+  const manageableDifficulty =
+    workoutSummary.average_difficulty !== null && workoutSummary.average_difficulty <= 3.2
+  const adaptingWell =
+    workoutSummary.difficulty_trend === "down" ||
+    (workoutSummary.average_difficulty !== null && workoutSummary.average_difficulty <= 2.8)
+
+  let progressTowardGoal = false
+
+  if (goalType === "lose_weight") {
+    progressTowardGoal =
+      (bodyChanges?.weight_kg ?? 0) <= -1 ||
+      (bodyChanges?.waist_cm ?? 0) <= -1 ||
+      (bodyChanges?.body_fat_pct ?? 0) <= -0.8
+  } else if (goalType === "build_muscle") {
+    progressTowardGoal =
+      (bodyChanges?.weight_kg ?? 0) >= 0.8 ||
+      (bodyChanges?.chest_cm ?? 0) >= 0.8 ||
+      (bodyChanges?.bicep_cm ?? 0) >= 0.5 ||
+      (bodyChanges?.thigh_cm ?? 0) >= 0.8
+  } else if (goalType === "get_stronger") {
+    progressTowardGoal = consistentTraining && adaptingWell
+  } else {
+    progressTowardGoal =
+      consistentTraining &&
+      ((bodyChanges?.body_fat_pct ?? 0) <= -0.5 ||
+        (workoutSummary.average_difficulty !== null && workoutSummary.average_difficulty <= 3))
+  }
+
+  if (consistentTraining) reasons.push("Consistent adherence over recent weeks.")
+  if (manageableDifficulty) reasons.push("Average session difficulty is manageable.")
+  if (adaptingWell) reasons.push("Difficulty trend suggests adaptation to the current phase.")
+  if (progressTowardGoal) reasons.push("Body/performance trends show progress toward the goal.")
+
+  const readyForNextPhase =
+    consistentTraining &&
+    manageableDifficulty &&
+    (progressTowardGoal || adaptingWell)
+
+  return {
+    ready_for_next_phase: readyForNextPhase,
+    reasons,
+    adherence_ratio: workoutSummary.adherence_ratio,
+    average_difficulty: workoutSummary.average_difficulty,
+    difficulty_trend: workoutSummary.difficulty_trend,
+  }
 }
 
 export async function POST(req: Request) {
@@ -322,12 +446,28 @@ export async function POST(req: Request) {
     const currentWeightKg = latestLookbackWeight ?? latestStoredWeight ?? 75
     const heightCm = toNumber(profile?.height_cm ?? null)
     const experienceLevel = getExperienceLevel(profile?.experience_level ?? null)
+    const goalType = activeGoal.goal_type || "general_fitness"
+    const goalDescription = goalDescriptions[goalType] ?? "general fitness"
 
     const workoutSummary = summarizeWorkoutLogs(workoutLogs, targetDaysPerWeek)
     const bodyMetricSummary = summarizeBodyMetrics(bodyMetrics)
+    const phaseReadiness = assessPhaseReadiness({
+      goalType,
+      workoutSummary: {
+        total_workouts: workoutSummary.total_workouts,
+        adherence_ratio: workoutSummary.adherence_ratio,
+        average_difficulty: workoutSummary.average_difficulty,
+        difficulty_trend: workoutSummary.difficulty_trend,
+      },
+      bodyChanges: bodyMetricSummary.changes as BodyMetricChanges | null,
+      daysPerWeek: targetDaysPerWeek,
+    })
+    const forceNewPhase = phaseReadiness.ready_for_next_phase
 
     const strategyHint =
-      workoutSummary.adherence_ratio !== null && workoutSummary.adherence_ratio < 0.45
+      forceNewPhase
+        ? "generate_new_plan"
+        : workoutSummary.adherence_ratio !== null && workoutSummary.adherence_ratio < 0.45
         ? "generate_new_plan"
         : "update_current_plan"
 
@@ -350,9 +490,9 @@ export async function POST(req: Request) {
       bicep_cm: toNumber(metric.bicep_cm),
       thigh_cm: toNumber(metric.thigh_cm),
     }))
-
-    const goalType = activeGoal.goal_type || "general_fitness"
-    const goalDescription = goalDescriptions[goalType] ?? "general fitness"
+    const phaseDirective = forceNewPhase
+      ? 'Phase readiness is TRUE, so action MUST be "generate_new_plan" and the plan should represent a clear step-up to the next training phase.'
+      : ""
 
     const systemPrompt = `You are an expert personal trainer updating an active workout plan.
 
@@ -364,6 +504,7 @@ Decision requirements:
 - Use the user's goal, current active plan, last ${LOOKBACK_MONTHS} months of workout logs, and last ${LOOKBACK_MONTHS} months of body metrics.
 - Favor "update_current_plan" when adherence is good and only moderate tweaks are needed.
 - Favor "generate_new_plan" when adherence is poor, constraints changed, or progress data suggests the plan structure is not working.
+- Also choose "generate_new_plan" when progress indicates the athlete is ready to step up into a new training phase.
 - Keep recommendations realistic and specific.
 
 Plan construction rules:
@@ -432,6 +573,10 @@ ${feedback && feedback.length > 0 ? feedback : "No additional feedback provided.
 
 Initial strategy hint from adherence data: ${strategyHint}. You may override this hint if data supports another decision.
 
+Phase readiness assessment:
+${JSON.stringify(phaseReadiness, null, 2)}
+${phaseDirective}
+
 Return:
 - action: "update_current_plan" or "generate_new_plan"
 - rationale: concise explanation
@@ -444,11 +589,21 @@ Return:
       prompt,
     })
 
+    const finalAction =
+      forceNewPhase && output.action !== "generate_new_plan"
+        ? "generate_new_plan"
+        : output.action
+    const finalRationale =
+      forceNewPhase && output.action !== "generate_new_plan"
+        ? `${output.rationale} Switched to a new phase because readiness signals indicate the athlete has adapted and should progress.`
+        : output.rationale
+
     return Response.json({
-      action: output.action,
-      rationale: output.rationale,
+      action: finalAction,
+      rationale: finalRationale,
       plan: output.plan,
       lookback_months: LOOKBACK_MONTHS,
+      phase_readiness: phaseReadiness,
     })
   } catch {
     return Response.json({ error: "Failed to update plan" }, { status: 500 })
