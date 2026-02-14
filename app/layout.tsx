@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Bebas_Neue, DM_Sans, JetBrains_Mono } from 'next/font/google'
 import { Toaster } from 'sonner'
 
+import { PWARegister } from './components/pwa-register'
 import './globals.css'
 
 const bebasNeue = Bebas_Neue({ weight: '400', subsets: ['latin'], variable: '--font-display' })
@@ -11,6 +12,15 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jet
 export const metadata: Metadata = {
   title: 'FitForge - Smart Workout Plans',
   description: 'Personalized workout plans that adapt to your progress. Set goals, track measurements, and let intelligent planning guide your fitness journey.',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'FitForge',
+  },
+  icons: {
+    icon: '/icon.svg',
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 export const viewport: Viewport = {
@@ -29,6 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${bebasNeue.variable} ${dmSans.variable} ${jetbrainsMono.variable} font-body antialiased`}>
+        <PWARegister />
         {children}
         <Toaster
           theme="dark"
