@@ -8,7 +8,9 @@ import {
 } from "@/lib/schemas"
 
 const generatePlanRequestSchema = z.object({
-  goal: goalStepSchema,
+  goal: goalStepSchema.extend({
+    target_weight_kg: z.coerce.number().min(20).max(300).optional(),
+  }),
   metrics: metricsStepSchema,
   preferences: preferencesStepSchema,
 })
