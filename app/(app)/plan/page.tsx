@@ -1,45 +1,17 @@
-import { createClient } from "@/lib/supabase/server"
+import { Suspense } from "react"
+import Link from "next/link"
 import { AppHeader } from "@/components/layout/app-header"
 import { PlanOverview } from "@/components/plan/plan-overview"
-import type { WorkoutPlan, FitnessGoal, WorkoutLog } from "@/lib/types"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { PlanSkeleton } from "@/components/skeletons/plan-skeleton"
+import { getPlanData } from "@/lib/data/plan"
 import { Plus, Dumbbell } from "lucide-react"
 
-export default async function PlanPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+async function PlanData() {
+  const data = await getPlanData()
+  if (!data) return null
 
-  if (!user) return null
-
-  const [planRes, goalRes, logsRes] = await Promise.all([
-    supabase
-      .from("workout_plans")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single(),
-    supabase
-      .from("fitness_goals")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single(),
-    supabase
-      .from("workout_logs")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("completed_at", { ascending: false })
-      .limit(20),
-  ])
-
-  const activePlan = planRes.data as WorkoutPlan | null
-  const activeGoal = goalRes.data as FitnessGoal | null
-  const recentLogs = (logsRes.data ?? []) as WorkoutLog[]
+  const { activePlan, activeGoal, recentLogs } = data
 
   if (!activePlan) {
     return (
@@ -78,6 +50,23 @@ export default async function PlanPage() {
         }
       />
       <PlanOverview plan={activePlan} goal={activeGoal} recentLogs={recentLogs} />
+    </div>
+  )
+}
+
+export default function PlanPage() {
+  return (
+    <div>
+      <Suspense
+        fallback={
+          <>
+            <AppHeader title="Workout Plan" subtitle="Loading..." />
+            <PlanSkeleton />
+          </>
+        }
+      >
+        <PlanData />
+      </Suspense>
     </div>
   )
 }

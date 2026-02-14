@@ -1,5 +1,6 @@
 "use server"
 
+import { updateTag } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 
@@ -23,6 +24,11 @@ export async function updateProfile(formData: {
     .eq("id", user.id)
 
   if (error) throw new Error(error.message)
+
+  // Immediate invalidation so the profile page reflects changes
+  updateTag("profile")
+  updateTag("profiles")
+  updateTag("dashboard") // Display name shows on dashboard greeting
 }
 
 export async function signOut() {

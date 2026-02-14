@@ -1,5 +1,6 @@
 "use server"
 
+import { updateTag } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import type { LoggedExercise } from "@/lib/types"
 
@@ -39,6 +40,12 @@ export async function saveWorkoutLog(input: SaveWorkoutLogInput) {
       .update({ difficulty_rating: input.difficultyRating })
       .eq("id", input.planId)
   }
+
+  // Immediate invalidation so redirected page sees fresh data
+  updateTag("dashboard")
+  updateTag("progress")
+  updateTag("workout-logs")
+  updateTag("plan")
 
   return data
 }

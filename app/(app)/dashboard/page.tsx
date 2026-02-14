@@ -1,57 +1,57 @@
-import { createClient } from "@/lib/supabase/server"
+import { Suspense } from "react"
+import { connection } from "next/server"
 import { AppHeader } from "@/components/layout/app-header"
 import { DashboardContent } from "@/components/dashboard/dashboard-content"
-import type { WorkoutPlan, BodyMetric, WorkoutLog } from "@/lib/types"
+import { DashboardSkeleton } from "@/components/skeletons/dashboard-skeleton"
+import { getDashboardData } from "@/lib/data/dashboard"
 
-export default async function DashboardPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+async function DashboardGreeting() {
+  // Defer to request time so Date.now() is fresh (required for PPR)
+  await connection()
+  const weekStartIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const data = await getDashboardData(weekStartIso)
+  if (!data) return null
 
-  if (!user) return null
+  const displayName = data.user.user_metadata?.display_name
+  return (
+    <AppHeader
+      title={`Hey${displayName ? `, ${displayName}` : ""}`}
+      subtitle={new Date().toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+      })}
+    />
+  )
+}
 
-  const [planRes, metricsRes, logsRes] = await Promise.all([
-    supabase
-      .from("workout_plans")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single(),
-    supabase
-      .from("body_metrics")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("recorded_at", { ascending: false })
-      .limit(1)
-      .single(),
-    supabase
-      .from("workout_logs")
-      .select("*")
-      .eq("user_id", user.id)
-      .gte("completed_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-      .order("completed_at", { ascending: false }),
-  ])
-
-  const activePlan = planRes.data as WorkoutPlan | null
-  const latestMetric = metricsRes.data as BodyMetric | null
-  const weeklyLogs = (logsRes.data ?? []) as WorkoutLog[]
+async function DashboardData() {
+  await connection()
+  const weekStartIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const data = await getDashboardData(weekStartIso)
+  if (!data) return null
 
   return (
+    <DashboardContent
+      activePlan={data.activePlan}
+      latestMetric={data.latestMetric}
+      weeklyLogs={data.weeklyLogs}
+    />
+  )
+}
+
+export default function DashboardPage() {
+  return (
     <div>
-      <AppHeader
-        title={`Hey${user.user_metadata?.display_name ? `, ${user.user_metadata.display_name}` : ""}`}
-        subtitle={new Date().toLocaleDateString("en-US", {
-          weekday: "long",
-          month: "long",
-          day: "numeric",
-        })}
-      />
-      <DashboardContent
-        activePlan={activePlan}
-        latestMetric={latestMetric}
-        weeklyLogs={weeklyLogs}
-      />
+      {/* Personalized greeting - streams in quickly from cache */}
+      <Suspense fallback={<AppHeader title="Hey" subtitle="Loading..." />}>
+        <DashboardGreeting />
+      </Suspense>
+
+      {/* Dashboard cards - streams in with cached data */}
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardData />
+      </Suspense>
     </div>
   )
 }

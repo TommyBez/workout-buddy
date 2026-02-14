@@ -1,37 +1,32 @@
-import { createClient } from "@/lib/supabase/server"
+import { Suspense } from "react"
 import { AppHeader } from "@/components/layout/app-header"
 import { ProfileContent } from "@/components/profile/profile-content"
-import type { Profile, FitnessGoal } from "@/lib/types"
+import { ProfileSkeleton } from "@/components/skeletons/profile-skeleton"
+import { getProfileData } from "@/lib/data/profile"
 
-export default async function ProfilePage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) return null
-
-  const [profileRes, goalRes] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).single(),
-    supabase
-      .from("fitness_goals")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single(),
-  ])
-
-  const profile = profileRes.data as Profile | null
-  const activeGoal = goalRes.data as FitnessGoal | null
+async function ProfileData() {
+  const data = await getProfileData()
+  if (!data) return null
 
   return (
+    <ProfileContent
+      email={data.user.email ?? ""}
+      profile={data.profile}
+      activeGoal={data.activeGoal}
+    />
+  )
+}
+
+export default function ProfilePage() {
+  return (
     <div>
+      {/* Static shell - prerendered instantly */}
       <AppHeader title="Profile" />
-      <ProfileContent
-        email={user.email ?? ""}
-        profile={profile}
-        activeGoal={activeGoal}
-      />
+
+      {/* Dynamic - streams in with user data */}
+      <Suspense fallback={<ProfileSkeleton />}>
+        <ProfileData />
+      </Suspense>
     </div>
   )
 }

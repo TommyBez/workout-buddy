@@ -1,36 +1,26 @@
-import { createClient } from "@/lib/supabase/server"
+import { Suspense } from "react"
 import { AppHeader } from "@/components/layout/app-header"
 import { ProgressContent } from "@/components/progress/progress-content"
-import type { BodyMetric, WorkoutLog } from "@/lib/types"
+import { ProgressSkeleton } from "@/components/skeletons/progress-skeleton"
+import { getProgressData } from "@/lib/data/progress"
 
-export default async function ProgressPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+async function ProgressData() {
+  const data = await getProgressData()
+  if (!data) return null
 
-  if (!user) return null
+  return <ProgressContent metrics={data.metrics} logs={data.logs} />
+}
 
-  const [metricsRes, logsRes] = await Promise.all([
-    supabase
-      .from("body_metrics")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("recorded_at", { ascending: false })
-      .limit(30),
-    supabase
-      .from("workout_logs")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("completed_at", { ascending: false })
-      .limit(50),
-  ])
-
-  const metrics = (metricsRes.data ?? []) as BodyMetric[]
-  const logs = (logsRes.data ?? []) as WorkoutLog[]
-
+export default function ProgressPage() {
   return (
     <div>
+      {/* Static shell - prerendered instantly */}
       <AppHeader title="Progress" />
-      <ProgressContent metrics={metrics} logs={logs} />
+
+      {/* Dynamic - streams in with metrics & logs */}
+      <Suspense fallback={<ProgressSkeleton />}>
+        <ProgressData />
+      </Suspense>
     </div>
   )
 }

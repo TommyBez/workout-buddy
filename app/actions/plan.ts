@@ -1,5 +1,6 @@
 "use server"
 
+import { updateTag } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import type { WorkoutPlanOutput } from "@/lib/schemas"
 
@@ -37,6 +38,12 @@ export async function savePlan({ goalId, planOutput, weekNumber = 1 }: SavePlanI
     .single()
 
   if (error) throw new Error(error.message)
+
+  // Immediate invalidation so the redirected dashboard sees the new plan
+  updateTag("plan")
+  updateTag("workout-plans")
+  updateTag("dashboard")
+
   return data
 }
 
@@ -70,6 +77,11 @@ export async function saveGoal(goalData: {
     .single()
 
   if (error) throw new Error(error.message)
+
+  // Immediate invalidation
+  updateTag("plan")
+  updateTag("fitness-goals")
+
   return data
 }
 
@@ -97,4 +109,9 @@ export async function saveInitialMetrics(metricsData: {
       updated_at: new Date().toISOString(),
     })
     .eq("id", user.id)
+
+  // Immediate invalidation
+  updateTag("profile")
+  updateTag("dashboard")
+  updateTag("body-metrics")
 }

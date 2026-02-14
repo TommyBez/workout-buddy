@@ -1,5 +1,6 @@
 "use server"
 
+import { updateTag } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import type { BodyMetricFormValues } from "@/lib/schemas"
 
@@ -24,5 +25,11 @@ export async function saveBodyMetric(values: BodyMetricFormValues) {
     .single()
 
   if (error) throw new Error(error.message)
+
+  // Immediate invalidation so the user sees updated metrics right away
+  updateTag("progress")
+  updateTag("dashboard")
+  updateTag("body-metrics")
+
   return data
 }
