@@ -26,6 +26,7 @@ export async function saveWorkoutLog(input: SaveWorkoutLogInput) {
       workout_day: input.workoutDay,
       exercises: input.exercises,
       duration_min: input.durationMin,
+      difficulty_rating: input.difficultyRating || null,
       notes: input.notes || null,
     })
     .select()

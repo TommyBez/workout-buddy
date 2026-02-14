@@ -82,6 +82,7 @@ export interface WorkoutLog {
   workout_day: string
   exercises: LoggedExercise[]
   duration_min: number | null
+  difficulty_rating: number | null
   notes: string | null
   completed_at: string
   created_at: string
