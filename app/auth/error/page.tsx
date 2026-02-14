@@ -1,7 +1,6 @@
 import { Suspense } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
+import { AlertTriangle } from 'lucide-react'
 
 async function AuthErrorContent({
   searchParams,
@@ -11,24 +10,34 @@ async function AuthErrorContent({
   const params = await searchParams
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6">
-      <div className="w-full max-w-sm">
-        <Card className="border-border bg-card">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
-              <AlertTriangle className="h-6 w-6 text-destructive" />
-            </div>
-            <CardTitle className="text-xl font-bold tracking-tight text-card-foreground">Something went wrong</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="mb-4 text-sm text-muted-foreground">
-              {params?.error ? `Error: ${params.error}` : 'An unspecified error occurred.'}
-            </p>
-            <Link href="/auth/login" className="text-sm text-primary underline-offset-4 hover:underline">
+    <div className="relative flex min-h-svh w-full flex-col items-center justify-center overflow-hidden p-6">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0" style={{
+          background: 'radial-gradient(ellipse 50% 40% at 50% 45%, hsl(0 72% 51% / 0.06) 0%, transparent 70%)',
+        }} />
+        <div className="grain-subtle absolute inset-0 overflow-hidden" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-sm">
+        <div className="animate-scale-in delay-0 forge-card rounded-2xl border border-border bg-card/80 p-8 text-center backdrop-blur-sm">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-xl bg-destructive/10 ring-1 ring-destructive/20">
+            <AlertTriangle className="h-7 w-7 text-destructive" />
+          </div>
+          <h1 className="font-display text-3xl uppercase tracking-wide text-card-foreground">
+            Something went wrong
+          </h1>
+          <p className="mt-3 text-sm text-muted-foreground">
+            {params?.error ? `Error: ${params.error}` : 'An unspecified error occurred.'}
+          </p>
+          <div className="mt-8">
+            <Link
+              href="/auth/login"
+              className="text-sm font-medium text-primary underline-offset-4 transition-colors hover:text-primary/80 hover:underline"
+            >
               Back to sign in
             </Link>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -41,14 +50,15 @@ export default async function AuthErrorPage({
 }) {
   return (
     <Suspense fallback={
-      <div className="flex min-h-svh w-full items-center justify-center p-6">
-        <div className="w-full max-w-sm">
-          <Card className="border-border bg-card">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-muted animate-pulse" />
-              <CardTitle className="text-xl font-bold tracking-tight text-card-foreground">Loading...</CardTitle>
-            </CardHeader>
-          </Card>
+      <div className="relative flex min-h-svh w-full items-center justify-center p-6">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="grain-subtle absolute inset-0 overflow-hidden" />
+        </div>
+        <div className="relative z-10 w-full max-w-sm">
+          <div className="forge-card rounded-2xl border border-border bg-card/80 p-8 text-center backdrop-blur-sm">
+            <div className="mx-auto mb-5 h-14 w-14 animate-pulse rounded-xl bg-muted" />
+            <h1 className="font-display text-3xl uppercase tracking-wide text-card-foreground">Loading...</h1>
+          </div>
         </div>
       </div>
     }>

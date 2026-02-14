@@ -13,17 +13,19 @@ interface PlanOverviewProps {
 export function PlanOverview({ plan, goal, recentLogs }: PlanOverviewProps) {
   return (
     <div className="flex flex-col gap-3 px-4 pb-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {plan.plan_data.days.length} days per week &middot; Week {plan.week_number}
-        </p>
-      </div>
+      <p className="animate-fade-in delay-50 text-sm text-muted-foreground">
+        {plan.plan_data.days.length} days per week &middot; Week {plan.week_number}
+      </p>
 
       {plan.plan_data.days.map((day, index) => (
-        <WorkoutDayCard key={index} day={day} dayIndex={index} />
+        <div key={index} className="animate-fade-up" style={{ animationDelay: `${100 + index * 75}ms` }}>
+          <WorkoutDayCard day={day} dayIndex={index} />
+        </div>
       ))}
 
-      <PlanFeedbackDrawer plan={plan} goal={goal} recentLogs={recentLogs} />
+      <div className="animate-fade-up" style={{ animationDelay: `${100 + plan.plan_data.days.length * 75 + 50}ms` }}>
+        <PlanFeedbackDrawer plan={plan} goal={goal} recentLogs={recentLogs} />
+      </div>
     </div>
   )
 }

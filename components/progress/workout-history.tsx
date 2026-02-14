@@ -8,7 +8,7 @@ interface WorkoutHistoryProps {
 export function WorkoutHistory({ logs }: WorkoutHistoryProps) {
   if (logs.length === 0) {
     return (
-      <div className="flex h-32 items-center justify-center rounded-xl border border-border bg-card">
+      <div className="forge-card flex h-32 items-center justify-center rounded-xl border border-border bg-card">
         <p className="text-sm text-muted-foreground">No workouts logged yet</p>
       </div>
     )
@@ -16,7 +16,7 @@ export function WorkoutHistory({ logs }: WorkoutHistoryProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      {logs.map((log) => {
+      {logs.map((log, i) => {
         const exercises = Array.isArray(log.exercises) ? log.exercises : []
         const totalSets = exercises.reduce((sum, e) => sum + (e.sets?.length || 0), 0)
         const completedSets = exercises.reduce(
@@ -27,15 +27,16 @@ export function WorkoutHistory({ logs }: WorkoutHistoryProps) {
         return (
           <div
             key={log.id}
-            className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+            className="forge-card flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+            style={{ animationDelay: `${i * 50}ms` }}
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
               <Dumbbell className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold text-foreground">{log.workout_day}</p>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span>{completedSets}/{totalSets} sets</span>
+                <span className="font-mono">{completedSets}/{totalSets} sets</span>
                 {log.duration_min && (
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />

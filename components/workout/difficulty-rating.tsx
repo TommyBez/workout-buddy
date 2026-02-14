@@ -10,8 +10,10 @@ interface DifficultyRatingProps {
 
 export function DifficultyRating({ value, onChange }: DifficultyRatingProps) {
   return (
-    <div className="space-y-2">
-      <p className="text-sm font-medium text-foreground">How was that workout?</p>
+    <div className="space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        How was that workout?
+      </p>
       <div className="flex gap-2">
         {[1, 2, 3, 4, 5].map((rating) => (
           <button
@@ -19,13 +21,13 @@ export function DifficultyRating({ value, onChange }: DifficultyRatingProps) {
             type="button"
             onClick={() => onChange(rating)}
             className={cn(
-              "flex h-12 flex-1 flex-col items-center justify-center rounded-xl border text-xs transition-all",
+              "flex h-12 flex-1 flex-col items-center justify-center rounded-xl border text-xs transition-all duration-300",
               value === rating
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border bg-card text-muted-foreground hover:border-muted-foreground/50"
+                ? "option-selected border-primary bg-primary/10 text-primary"
+                : "border-border bg-card text-muted-foreground hover:border-muted-foreground/50 hover:bg-card/80"
             )}
           >
-            <span className="text-base font-bold">{rating}</span>
+            <span className="font-display text-xl">{rating}</span>
           </button>
         ))}
       </div>

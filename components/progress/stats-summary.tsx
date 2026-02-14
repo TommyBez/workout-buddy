@@ -48,9 +48,9 @@ export function StatsSummary({ logs, metrics }: StatsSummaryProps) {
   return (
     <div className="grid grid-cols-2 gap-2">
       {stats.map((stat) => (
-        <div key={stat.label} className="rounded-xl border border-border bg-card p-3">
-          <stat.icon className="mb-1 h-4 w-4 text-muted-foreground" />
-          <p className="text-lg font-bold text-foreground">{stat.value}</p>
+        <div key={stat.label} className="stat-card rounded-xl border border-border bg-card p-3">
+          <stat.icon className="mb-1.5 h-4 w-4 text-primary/60" />
+          <p className="font-display text-2xl text-foreground">{stat.value}</p>
           <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
             {stat.label}
           </p>

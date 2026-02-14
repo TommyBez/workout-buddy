@@ -24,8 +24,10 @@ export function WorkoutDayCard({
   return (
     <div
       className={cn(
-        "rounded-xl border bg-card transition-all",
-        isToday ? "border-primary/50 ring-1 ring-primary/20" : "border-border"
+        "forge-card rounded-xl border bg-card transition-all",
+        isToday
+          ? "border-primary/40 shadow-[0_0_0_1px_hsl(38_92%_50%/0.1),0_4px_24px_-8px_hsl(38_92%_50%/0.12)]"
+          : "border-border"
       )}
     >
       <button
@@ -37,9 +39,9 @@ export function WorkoutDayCard({
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-lg font-bold",
+              "flex h-10 w-10 items-center justify-center rounded-lg font-display text-lg",
               isToday
-                ? "bg-primary text-primary-foreground"
+                ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
                 : "bg-secondary text-muted-foreground"
             )}
           >
@@ -51,37 +53,37 @@ export function WorkoutDayCard({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="secondary" className="border-0 bg-secondary/80 text-xs">
             {day.exercises.length}
           </Badge>
           {isExpanded ? (
-            <ChevronUp className="h-4 w-4 text-muted-foreground" />
+            <ChevronUp className="h-4 w-4 text-muted-foreground transition-transform duration-300" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-300" />
           )}
         </div>
       </button>
 
       {isExpanded && (
-        <div className="border-t border-border px-4 pb-4 pt-3">
+        <div className="border-t border-border/60 px-4 pb-4 pt-3">
           {day.warmup && (
             <p className="mb-3 text-xs text-muted-foreground">
               <span className="font-medium text-foreground">Warmup:</span> {day.warmup}
             </p>
           )}
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5">
             {day.exercises.map((exercise, i) => (
               <div
                 key={i}
-                className="flex items-start gap-3 rounded-lg bg-secondary/50 px-3 py-2.5"
+                className="flex items-start gap-3 rounded-lg bg-secondary/40 px-3 py-2.5 transition-colors hover:bg-secondary/60"
               >
-                <Dumbbell className="mt-0.5 h-4 w-4 shrink-0 text-primary/70" />
+                <Dumbbell className="mt-0.5 h-4 w-4 shrink-0 text-primary/50" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-foreground">{exercise.name}</p>
                   <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="font-mono">
-                      {exercise.sets} x {exercise.reps}
+                    <span className="font-mono text-foreground/70">
+                      {exercise.sets} × {exercise.reps}
                     </span>
                     <span className="flex items-center gap-1">
                       <Timer className="h-3 w-3" />
@@ -89,7 +91,7 @@ export function WorkoutDayCard({
                     </span>
                   </div>
                   {exercise.notes && (
-                    <p className="mt-1 text-xs text-muted-foreground/80">{exercise.notes}</p>
+                    <p className="mt-1 text-xs text-muted-foreground/70">{exercise.notes}</p>
                   )}
                 </div>
               </div>

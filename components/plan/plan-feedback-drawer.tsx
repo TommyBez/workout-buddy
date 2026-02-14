@@ -105,14 +105,19 @@ export function PlanFeedbackDrawer({ plan, goal, recentLogs }: PlanFeedbackDrawe
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <DrawerTrigger asChild>
-        <Button variant="outline" className="mt-2 w-full gap-2">
+        <Button
+          variant="outline"
+          className="mt-2 w-full gap-2 border-border/80 transition-all duration-300 hover:border-primary/20 hover:bg-primary/5"
+        >
           <MessageSquare className="h-4 w-4" />
           Adjust Plan
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="bg-card">
+      <DrawerContent className="border-border bg-card">
         <DrawerHeader>
-          <DrawerTitle>How should we adjust your plan?</DrawerTitle>
+          <DrawerTitle className="font-display text-2xl uppercase tracking-wide">
+            How should we adjust your plan?
+          </DrawerTitle>
         </DrawerHeader>
         <div className="flex flex-col gap-4 px-4">
           <div className="flex flex-wrap gap-2">
@@ -122,9 +127,9 @@ export function PlanFeedbackDrawer({ plan, goal, recentLogs }: PlanFeedbackDrawe
                 type="button"
                 onClick={() => toggleQuick(item)}
                 className={cn(
-                  "rounded-full border px-3 py-1.5 text-sm transition-all",
+                  "rounded-full border px-3.5 py-2 text-sm transition-all duration-300",
                   selectedQuick.includes(item)
-                    ? "border-primary bg-primary/10 text-primary"
+                    ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
                     : "border-border text-muted-foreground hover:border-muted-foreground/50"
                 )}
               >
@@ -133,13 +138,15 @@ export function PlanFeedbackDrawer({ plan, goal, recentLogs }: PlanFeedbackDrawe
             ))}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="feedback">Additional details</Label>
+            <Label htmlFor="feedback" className="text-xs uppercase tracking-wider text-muted-foreground">
+              Additional details
+            </Label>
             <Textarea
               id="feedback"
               placeholder="Tell us what to change..."
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
-              className="min-h-[80px] bg-background"
+              className="min-h-[80px] bg-background/50 focus-visible:border-primary/50 focus-visible:ring-primary/20"
             />
           </div>
         </div>
@@ -147,12 +154,13 @@ export function PlanFeedbackDrawer({ plan, goal, recentLogs }: PlanFeedbackDrawe
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || (!feedback && selectedQuick.length === 0)}
-            className="h-12"
+            className="group relative h-12 overflow-hidden shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/25"
           >
-            {isSubmitting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : null}
-            {isSubmitting ? "Adjusting..." : "Update My Plan"}
+            <span className="relative z-10 flex items-center justify-center gap-2">
+              {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isSubmitting ? "Adjusting..." : "Update My Plan"}
+            </span>
+            <div className="btn-shimmer absolute inset-0" />
           </Button>
         </DrawerFooter>
       </DrawerContent>

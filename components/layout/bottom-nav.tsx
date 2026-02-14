@@ -17,7 +17,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-sm supports-[backdrop-filter]:bg-card/80"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/90 backdrop-blur-md supports-backdrop-filter:bg-card/75"
       role="navigation"
       aria-label="Main navigation"
     >
@@ -29,15 +29,18 @@ export function BottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-1 flex-col items-center gap-1 py-3 text-xs transition-colors",
+                "relative flex flex-1 flex-col items-center gap-1 py-3 text-xs transition-all duration-300",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               )}
               aria-current={isActive ? "page" : undefined}
             >
-              <item.icon className={cn("h-5 w-5", isActive && "stroke-[2.5]")} />
-              <span className="font-medium">{item.label}</span>
+              {isActive && (
+                <span className="absolute -top-px left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-primary shadow-[0_0_8px_hsl(38_92%_50%/0.5)]" />
+              )}
+              <item.icon className={cn("h-5 w-5 transition-all duration-300", isActive && "stroke-[2.5] drop-shadow-[0_0_6px_hsl(38_92%_50%/0.4)]")} />
+              <span className={cn("font-medium transition-all duration-300", isActive && "text-primary")}>{item.label}</span>
             </Link>
           )
         })}

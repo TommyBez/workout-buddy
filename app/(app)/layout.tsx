@@ -33,9 +33,22 @@ export default function AppLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
+    <div className="relative flex min-h-dvh flex-col bg-background">
+      {/* Subtle background atmosphere for inner pages */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <div className="grain-subtle absolute inset-0 overflow-hidden" />
+        <div
+          className="absolute inset-0 opacity-[0.015]"
+          style={{
+            backgroundImage:
+              'linear-gradient(hsl(0 0% 100% / 0.1) 1px, transparent 1px), linear-gradient(90deg, hsl(0 0% 100% / 0.1) 1px, transparent 1px)',
+            backgroundSize: '64px 64px',
+          }}
+        />
+      </div>
+
       {/* Static shell - prerendered at build time */}
-      <main className="mx-auto w-full max-w-lg flex-1 pb-20">
+      <main className="relative z-10 mx-auto w-full max-w-lg flex-1 pb-20">
         {/* Dynamic auth gate - streams in */}
         <Suspense fallback={<ContentSkeleton />}>
           <AuthGate>{children}</AuthGate>

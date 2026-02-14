@@ -65,19 +65,25 @@ export function MetricsForm() {
   return (
     <Drawer open={isOpen} onOpenChange={setIsOpen}>
       <DrawerTrigger asChild>
-        <Button size="sm" className="gap-1">
-          <Plus className="h-4 w-4" />
-          Log
+        <Button size="sm" className="relative gap-1 overflow-hidden shadow-sm shadow-primary/10">
+          <span className="relative z-10 flex items-center gap-1">
+            <Plus className="h-4 w-4" />
+            Log
+          </span>
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="bg-card">
+      <DrawerContent className="border-border bg-card">
         <DrawerHeader>
-          <DrawerTitle>{"Log Today's Measurements"}</DrawerTitle>
+          <DrawerTitle className="font-display text-2xl uppercase tracking-wide">
+            {"Log Today's Measurements"}
+          </DrawerTitle>
         </DrawerHeader>
         <div className="flex flex-col gap-4 px-4">
           <div className="flex gap-3">
             <div className="flex-1 space-y-1.5">
-              <Label htmlFor="m-weight" className="text-xs">Weight (kg)</Label>
+              <Label htmlFor="m-weight" className="text-xs uppercase tracking-wider text-muted-foreground">
+                Weight (kg)
+              </Label>
               <Input
                 id="m-weight"
                 type="number"
@@ -85,11 +91,13 @@ export function MetricsForm() {
                 placeholder="75"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
-                className="h-11 bg-background"
+                className="h-11 bg-background/50 focus-visible:border-primary/50 focus-visible:ring-primary/20"
               />
             </div>
             <div className="flex-1 space-y-1.5">
-              <Label htmlFor="m-bf" className="text-xs">Body Fat %</Label>
+              <Label htmlFor="m-bf" className="text-xs uppercase tracking-wider text-muted-foreground">
+                Body Fat %
+              </Label>
               <Input
                 id="m-bf"
                 type="number"
@@ -97,7 +105,7 @@ export function MetricsForm() {
                 placeholder="15"
                 value={bodyFat}
                 onChange={(e) => setBodyFat(e.target.value)}
-                className="h-11 bg-background"
+                className="h-11 bg-background/50 focus-visible:border-primary/50 focus-visible:ring-primary/20"
               />
             </div>
           </div>
@@ -111,23 +119,32 @@ export function MetricsForm() {
               { label: "Thigh", value: thigh, setter: setThigh, id: "m-thigh" },
             ].map((field) => (
               <div key={field.id} className="space-y-1.5">
-                <Label htmlFor={field.id} className="text-xs">{field.label} (cm)</Label>
+                <Label htmlFor={field.id} className="text-xs uppercase tracking-wider text-muted-foreground">
+                  {field.label} (cm)
+                </Label>
                 <Input
                   id={field.id}
                   type="number"
                   inputMode="decimal"
                   value={field.value}
                   onChange={(e) => field.setter(e.target.value)}
-                  className="h-11 bg-background"
+                  className="h-11 bg-background/50 focus-visible:border-primary/50 focus-visible:ring-primary/20"
                 />
               </div>
             ))}
           </div>
         </div>
         <DrawerFooter>
-          <Button onClick={handleSave} disabled={isSaving} className="h-12">
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSaving ? "Saving..." : "Save Measurements"}
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="group relative h-12 overflow-hidden shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/25"
+          >
+            <span className="relative z-10 flex items-center justify-center gap-2">
+              {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isSaving ? "Saving..." : "Save Measurements"}
+            </span>
+            <div className="btn-shimmer absolute inset-0" />
           </Button>
         </DrawerFooter>
       </DrawerContent>

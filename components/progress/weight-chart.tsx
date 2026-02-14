@@ -28,7 +28,7 @@ export function WeightChart({ metrics }: WeightChartProps) {
 
   if (data.length === 0) {
     return (
-      <div className="flex h-48 items-center justify-center rounded-xl border border-border bg-card">
+      <div className="forge-card flex h-48 items-center justify-center rounded-xl border border-border bg-card">
         <p className="text-sm text-muted-foreground">No weight data yet</p>
       </div>
     )
@@ -38,8 +38,10 @@ export function WeightChart({ metrics }: WeightChartProps) {
   const maxWeight = Math.ceil(Math.max(...data.map((d) => d.weight)) + 2)
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
-      <h3 className="mb-3 text-sm font-semibold text-foreground">Weight Trend</h3>
+    <div className="forge-card rounded-xl border border-border bg-card p-4">
+      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        Weight Trend
+      </h3>
       <ResponsiveContainer width="100%" height={200}>
         <AreaChart data={data}>
           <defs>
@@ -52,22 +54,23 @@ export function WeightChart({ metrics }: WeightChartProps) {
             dataKey="date"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "hsl(0 0% 55%)", fontSize: 11 }}
+            tick={{ fill: "hsl(0 0% 45%)", fontSize: 11 }}
           />
           <YAxis
             domain={[minWeight, maxWeight]}
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "hsl(0 0% 55%)", fontSize: 11 }}
+            tick={{ fill: "hsl(0 0% 45%)", fontSize: 11 }}
             width={35}
           />
           <Tooltip
             contentStyle={{
               background: "hsl(0 0% 7%)",
               border: "1px solid hsl(0 0% 14%)",
-              borderRadius: "8px",
+              borderRadius: "10px",
               color: "hsl(0 0% 95%)",
               fontSize: 12,
+              boxShadow: "0 8px 32px -8px hsl(0 0% 0% / 0.5)",
             }}
             formatter={(value: number) => [`${value} kg`, "Weight"]}
           />

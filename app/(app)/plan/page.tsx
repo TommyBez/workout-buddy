@@ -17,20 +17,24 @@ async function PlanData() {
     return (
       <div>
         <AppHeader title="Workout Plan" />
-        <div className="flex flex-col items-center justify-center gap-4 px-4 py-16 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+        <div className="animate-fade-up delay-200 flex flex-col items-center justify-center gap-5 px-4 py-20 text-center">
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
             <Dumbbell className="h-8 w-8 text-primary" />
+            <div className="absolute -inset-2 -z-10 rounded-3xl bg-primary/5 blur-xl" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-bold tracking-tight">No Active Plan</h2>
+            <h2 className="font-display text-2xl uppercase tracking-wide">No Active Plan</h2>
             <p className="text-sm text-muted-foreground">
               Create a plan tailored to your goals and equipment.
             </p>
           </div>
-          <Button asChild size="lg" className="mt-2 h-12 px-8">
+          <Button asChild size="lg" className="group relative mt-2 h-13 overflow-hidden px-8 shadow-lg shadow-primary/20">
             <Link href="/plan/generate">
-              <Plus className="mr-2 h-4 w-4" />
-              Create My Plan
+              <span className="relative z-10 flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Create My Plan
+              </span>
+              <div className="btn-shimmer absolute inset-0" />
             </Link>
           </Button>
         </div>
@@ -44,7 +48,12 @@ async function PlanData() {
         title={activePlan.name}
         subtitle={activePlan.description ?? undefined}
         action={
-          <Button variant="outline" size="sm" asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-border/80 transition-all duration-300 hover:border-primary/20 hover:bg-primary/5"
+            asChild
+          >
             <Link href="/plan/generate">Adjust</Link>
           </Button>
         }

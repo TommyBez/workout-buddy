@@ -18,15 +18,15 @@ interface GoalStepProps {
 
 export function GoalStep({ value, onChange }: GoalStepProps) {
   return (
-    <div className="flex flex-col gap-4">
-      <div className="space-y-1">
-        <h2 className="text-2xl font-bold tracking-tight">{"What's your goal?"}</h2>
+    <div className="flex flex-col gap-5">
+      <div className="animate-fade-up delay-0 space-y-1">
+        <h2 className="font-display text-3xl uppercase tracking-wide">{"What's your goal?"}</h2>
         <p className="text-sm text-muted-foreground">
           This helps us create the right plan for you.
         </p>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        {GOAL_OPTIONS.map((option) => {
+        {GOAL_OPTIONS.map((option, i) => {
           const Icon = GOAL_ICONS[option.value]
           const isSelected = value === option.value
           return (
@@ -35,16 +35,19 @@ export function GoalStep({ value, onChange }: GoalStepProps) {
               type="button"
               onClick={() => onChange(option.value)}
               className={cn(
-                "flex flex-col items-start gap-3 rounded-xl border p-4 text-left transition-all",
+                "animate-fade-up flex flex-col items-start gap-3 rounded-xl border p-4 text-left transition-all duration-300",
                 isSelected
-                  ? "border-primary bg-primary/10 ring-1 ring-primary"
-                  : "border-border bg-card hover:border-muted-foreground/30"
+                  ? "option-selected border-primary bg-primary/10"
+                  : "border-border bg-card hover:border-muted-foreground/30 hover:bg-card/80"
               )}
+              style={{ animationDelay: `${100 + i * 75}ms` }}
             >
               <div
                 className={cn(
-                  "flex h-10 w-10 items-center justify-center rounded-lg",
-                  isSelected ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"
+                  "flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-300",
+                  isSelected
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
+                    : "bg-secondary text-muted-foreground"
                 )}
               >
                 <Icon className="h-5 w-5" />

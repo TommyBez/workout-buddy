@@ -65,74 +65,88 @@ export function ProfileContent({ email, profile, activeGoal }: ProfileContentPro
   return (
     <div className="flex flex-col gap-6 px-4 pb-24">
       {/* Account */}
-      <section className="space-y-3">
-        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          <User className="h-4 w-4" />
+      <section className="animate-fade-up delay-100 space-y-3">
+        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <User className="h-3.5 w-3.5" />
           Account
         </h2>
-        <div className="rounded-xl border border-border bg-card p-4">
-          <div className="space-y-3">
+        <div className="forge-card rounded-xl border border-border bg-card p-4">
+          <div className="relative space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-xs text-muted-foreground">Email</Label>
+              <Label htmlFor="email" className="text-xs uppercase tracking-wider text-muted-foreground">
+                Email
+              </Label>
               <p id="email" className="text-sm text-foreground">{email}</p>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="name" className="text-xs">Display Name</Label>
+              <Label htmlFor="name" className="text-xs uppercase tracking-wider text-muted-foreground">
+                Display Name
+              </Label>
               <Input
                 id="name"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                className="h-11 bg-background"
+                className="h-11 bg-background/50 focus-visible:border-primary/50 focus-visible:ring-primary/20"
                 placeholder="Your name"
               />
             </div>
             <Button
               size="sm"
+              className="relative overflow-hidden shadow-sm shadow-primary/10"
               onClick={handleSave}
               disabled={isSaving || displayName === (profile?.display_name ?? "")}
             >
-              {isSaving && <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />}
-              Save Changes
+              <span className="relative z-10 flex items-center gap-1">
+                {isSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                Save Changes
+              </span>
             </Button>
           </div>
         </div>
       </section>
 
       {/* Current Goal */}
-      <section className="space-y-3">
-        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          <Target className="h-4 w-4" />
+      <section className="animate-fade-up delay-200 space-y-3">
+        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <Target className="h-3.5 w-3.5" />
           Current Goal
         </h2>
         {activeGoal ? (
-          <div className="rounded-xl border border-border bg-card p-4">
-            <div className="flex flex-col gap-3">
+          <div className="forge-card rounded-xl border border-border bg-card p-4">
+            <div className="relative flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                <span className="text-lg font-bold text-foreground">{goalLabel}</span>
-                <Button variant="outline" size="sm" asChild>
+                <span className="font-display text-2xl uppercase tracking-wide text-foreground">
+                  {goalLabel}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-border/80 transition-all duration-300 hover:border-primary/20 hover:bg-primary/5"
+                  asChild
+                >
                   <Link href="/plan/generate">
                     <RefreshCw className="mr-1 h-3.5 w-3.5" />
                     Change
                   </Link>
                 </Button>
               </div>
-              <Separator />
+              <Separator className="bg-border/60" />
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
+                  <Calendar className="h-4 w-4 text-primary/50" />
                   <span>{activeGoal.days_per_week} days/week</span>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <Clock className="h-4 w-4" />
+                  <Clock className="h-4 w-4 text-primary/50" />
                   <span>{activeGoal.session_duration_min} min</span>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <Dumbbell className="h-4 w-4" />
+                  <Dumbbell className="h-4 w-4 text-primary/50" />
                   <span>{activeGoal.equipment_access?.length ?? 0} equipment</span>
                 </div>
                 {expLabel && (
                   <div className="flex items-center gap-2 text-muted-foreground">
-                    <Target className="h-4 w-4" />
+                    <Target className="h-4 w-4 text-primary/50" />
                     <span>{expLabel}</span>
                   </div>
                 )}
@@ -140,29 +154,33 @@ export function ProfileContent({ email, profile, activeGoal }: ProfileContentPro
             </div>
           </div>
         ) : (
-          <div className="rounded-xl border border-border bg-card p-4 text-center">
-            <p className="mb-2 text-sm text-muted-foreground">No active goal</p>
-            <Button asChild size="sm">
-              <Link href="/plan/generate">Set a Goal</Link>
+          <div className="forge-card rounded-xl border border-border bg-card p-6 text-center">
+            <p className="mb-3 text-sm text-muted-foreground">No active goal</p>
+            <Button asChild size="sm" className="relative overflow-hidden shadow-sm shadow-primary/10">
+              <Link href="/plan/generate">
+                <span className="relative z-10">Set a Goal</span>
+              </Link>
             </Button>
           </div>
         )}
       </section>
 
       {/* Sign Out */}
-      <Button
-        variant="outline"
-        className="mt-4 h-12 w-full gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
-        onClick={handleSignOut}
-        disabled={isSigningOut}
-      >
-        {isSigningOut ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <LogOut className="h-4 w-4" />
-        )}
-        {isSigningOut ? "Signing out..." : "Sign Out"}
-      </Button>
+      <div className="animate-fade-up delay-300">
+        <Button
+          variant="outline"
+          className="mt-2 h-12 w-full gap-2 border-border/60 text-destructive transition-all duration-300 hover:border-destructive/30 hover:bg-destructive/5 hover:text-destructive"
+          onClick={handleSignOut}
+          disabled={isSigningOut}
+        >
+          {isSigningOut ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <LogOut className="h-4 w-4" />
+          )}
+          {isSigningOut ? "Signing out..." : "Sign Out"}
+        </Button>
+      </div>
     </div>
   )
 }

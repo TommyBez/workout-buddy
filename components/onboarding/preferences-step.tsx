@@ -29,17 +29,17 @@ export function PreferencesStep({
 }: PreferencesStepProps) {
   return (
     <div className="flex flex-col gap-6">
-      <div className="space-y-1">
-        <h2 className="text-2xl font-bold tracking-tight">Preferences</h2>
+      <div className="animate-fade-up delay-0 space-y-1">
+        <h2 className="font-display text-3xl uppercase tracking-wide">Preferences</h2>
         <p className="text-sm text-muted-foreground">
           Fine-tune your schedule and equipment access.
         </p>
       </div>
 
-      <div className="space-y-3">
+      <div className="animate-fade-up delay-100 space-y-3">
         <div className="flex items-center justify-between">
-          <Label>Days per Week</Label>
-          <span className="text-lg font-bold text-primary">{daysPerWeek}</span>
+          <Label className="text-xs uppercase tracking-wider text-muted-foreground">Days per Week</Label>
+          <span className="font-display text-2xl text-primary">{daysPerWeek}</span>
         </div>
         <Slider
           value={[daysPerWeek]}
@@ -55,10 +55,10 @@ export function PreferencesStep({
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="animate-fade-up delay-200 space-y-3">
         <div className="flex items-center justify-between">
-          <Label>Session Length</Label>
-          <span className="text-lg font-bold text-primary">{sessionDuration} min</span>
+          <Label className="text-xs uppercase tracking-wider text-muted-foreground">Session Length</Label>
+          <span className="font-display text-2xl text-primary">{sessionDuration} min</span>
         </div>
         <Slider
           value={[sessionDuration]}
@@ -74,8 +74,8 @@ export function PreferencesStep({
         </div>
       </div>
 
-      <div className="space-y-3">
-        <Label>Available Equipment</Label>
+      <div className="animate-fade-up delay-300 space-y-3">
+        <Label className="text-xs uppercase tracking-wider text-muted-foreground">Available Equipment</Label>
         <div className="flex flex-wrap gap-2">
           {EQUIPMENT_OPTIONS.map((item) => {
             const isSelected = equipment.includes(item.value)
@@ -85,9 +85,9 @@ export function PreferencesStep({
                 type="button"
                 onClick={() => onEquipmentToggle(item.value)}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm transition-all",
+                  "flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm transition-all duration-300",
                   isSelected
-                    ? "border-primary bg-primary/10 text-primary"
+                    ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
                     : "border-border bg-card text-muted-foreground hover:border-muted-foreground/50"
                 )}
               >
@@ -99,8 +99,8 @@ export function PreferencesStep({
         </div>
       </div>
 
-      <div className="space-y-3">
-        <Label>Focus Areas</Label>
+      <div className="animate-fade-up delay-400 space-y-3">
+        <Label className="text-xs uppercase tracking-wider text-muted-foreground">Focus Areas</Label>
         <div className="flex flex-wrap gap-2">
           {FOCUS_AREAS.map((area) => {
             const isSelected = focusAreas.includes(area.value)
@@ -110,9 +110,9 @@ export function PreferencesStep({
                 type="button"
                 onClick={() => onFocusToggle(area.value)}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm transition-all",
+                  "flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm transition-all duration-300",
                   isSelected
-                    ? "border-primary bg-primary/10 text-primary"
+                    ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
                     : "border-border bg-card text-muted-foreground hover:border-muted-foreground/50"
                 )}
               >

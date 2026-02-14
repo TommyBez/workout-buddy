@@ -8,7 +8,7 @@ import { MetricsStep } from "@/components/onboarding/metrics-step"
 import { PreferencesStep } from "@/components/onboarding/preferences-step"
 import { PlanPreview } from "@/components/onboarding/plan-preview"
 import { saveGoal, saveInitialMetrics, savePlan } from "@/app/actions/plan"
-import { Loader2, ArrowLeft, ArrowRight, Check } from "lucide-react"
+import { Loader2, ArrowLeft, ArrowRight, Check, Flame } from "lucide-react"
 import { toast } from "sonner"
 import type { WorkoutPlanOutput } from "@/lib/schemas"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -138,19 +138,22 @@ export default function GeneratePlanPage() {
   return (
     <div className="flex min-h-dvh flex-col px-4 pb-24 pt-6">
       {/* Progress bar */}
-      <div className="mb-6 flex gap-1.5">
+      <div className="animate-fade-in delay-0 mb-6 flex gap-1.5">
         {STEPS.map((_, i) => (
           <div
             key={i}
-            className={`h-1 flex-1 rounded-full transition-colors ${
-              i <= step ? "bg-primary" : "bg-secondary"
-            }`}
-          />
+            className="h-1 flex-1 overflow-hidden rounded-full bg-secondary"
+          >
+            <div
+              className="h-full rounded-full bg-primary transition-all duration-500 ease-out"
+              style={{ width: i <= step ? '100%' : '0%' }}
+            />
+          </div>
         ))}
       </div>
 
       {/* Step label */}
-      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+      <p className="animate-fade-in delay-50 mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
         Step {step + 1} of {STEPS.length} &middot; {STEPS[step]}
       </p>
 
@@ -182,14 +185,17 @@ export default function GeneratePlanPage() {
         {step === 3 && isGenerating && (
           <div className="flex flex-col gap-4">
             <div className="space-y-1">
-              <h2 className="text-2xl font-bold tracking-tight">Building Your Plan</h2>
-              <p className="text-sm text-muted-foreground">
+              <h2 className="font-display text-3xl uppercase tracking-wide">
+                Building Your Plan
+              </h2>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Flame className="h-3.5 w-3.5 animate-pulse text-primary" />
                 Creating a workout plan tailored to your goals...
-              </p>
+              </div>
             </div>
             <div className="flex flex-col gap-3">
               {Array.from({ length: daysPerWeek }).map((_, i) => (
-                <div key={i} className="rounded-xl border border-border bg-card p-4">
+                <div key={i} className="forge-card rounded-xl border border-border bg-card p-4" style={{ animationDelay: `${i * 100}ms` }}>
                   <Skeleton className="mb-2 h-5 w-32" />
                   <Skeleton className="mb-3 h-3 w-20" />
                   <div className="flex flex-col gap-2">
@@ -214,7 +220,7 @@ export default function GeneratePlanPage() {
           <Button
             variant="outline"
             size="lg"
-            className="h-12"
+            className="h-12 border-border/80 transition-all duration-300 hover:border-primary/20 hover:bg-primary/5"
             onClick={() => setStep((s) => s - 1)}
           >
             <ArrowLeft className="mr-1 h-4 w-4" />
@@ -225,28 +231,34 @@ export default function GeneratePlanPage() {
         {step < 3 && (
           <Button
             size="lg"
-            className="h-12 flex-1"
+            className="group relative h-12 flex-1 overflow-hidden shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/25"
             disabled={!canProceed()}
             onClick={handleNext}
           >
-            {step === 2 ? "Create My Plan" : "Continue"}
-            <ArrowRight className="ml-1 h-4 w-4" />
+            <span className="relative z-10 flex items-center justify-center gap-1">
+              {step === 2 ? "Create My Plan" : "Continue"}
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+            </span>
+            <div className="btn-shimmer absolute inset-0" />
           </Button>
         )}
 
         {step === 3 && !isGenerating && generatedPlan && (
           <Button
             size="lg"
-            className="h-12 flex-1"
+            className="group relative h-12 flex-1 overflow-hidden shadow-lg shadow-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/25"
             onClick={handleSavePlan}
             disabled={isSaving}
           >
-            {isSaving ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Check className="mr-2 h-4 w-4" />
-            )}
-            {isSaving ? "Saving..." : "Start Training"}
+            <span className="relative z-10 flex items-center justify-center gap-2">
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Check className="h-4 w-4" />
+              )}
+              {isSaving ? "Saving..." : "Start Training"}
+            </span>
+            <div className="btn-shimmer absolute inset-0" />
           </Button>
         )}
       </div>
