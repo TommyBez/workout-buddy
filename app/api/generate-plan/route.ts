@@ -37,7 +37,7 @@ ${goal.target_weight_kg ? `Their target weight is ${goal.target_weight_kg}kg.` :
 Give each day a clear name like "Day 1 - Push" or "Day 1 - Upper Body".`
 
   const { output } = await generateText({
-    model: "openai/gpt-4o",
+    model: "google/gemini-3-flash",
     output: Output.object({ schema: workoutPlanOutputSchema }),
     system: systemPrompt,
     prompt,
