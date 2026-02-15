@@ -1,16 +1,15 @@
 "use client"
 
-import type { WorkoutPlan, FitnessGoal, WorkoutLog } from "@/lib/types"
+import type { WorkoutPlan, FitnessGoal } from "@/lib/types"
 import { WorkoutDayCard } from "@/components/workout/workout-day-card"
 import { PlanFeedbackDrawer } from "@/components/plan/plan-feedback-drawer"
 
 interface PlanOverviewProps {
   plan: WorkoutPlan
   goal: FitnessGoal | null
-  recentLogs: WorkoutLog[]
 }
 
-export function PlanOverview({ plan, goal, recentLogs }: PlanOverviewProps) {
+export function PlanOverview({ plan, goal }: PlanOverviewProps) {
   return (
     <div className="flex flex-col gap-3 px-4 pb-4">
       <p className="animate-fade-in delay-50 text-sm text-muted-foreground">
@@ -24,7 +23,7 @@ export function PlanOverview({ plan, goal, recentLogs }: PlanOverviewProps) {
       ))}
 
       <div className="animate-fade-up" style={{ animationDelay: `${100 + plan.plan_data.days.length * 75 + 50}ms` }}>
-        <PlanFeedbackDrawer plan={plan} goal={goal} recentLogs={recentLogs} />
+        <PlanFeedbackDrawer plan={plan} goal={goal} />
       </div>
     </div>
   )

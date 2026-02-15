@@ -40,6 +40,12 @@ export const workoutPlanOutputSchema = z.object({
   days: z.array(workoutDaySchema),
 })
 
+export const workoutPlanUpdateOutputSchema = z.object({
+  action: z.enum(["update_current_plan", "generate_new_plan"]),
+  rationale: z.string(),
+  plan: workoutPlanOutputSchema,
+})
+
 export const bodyMetricFormSchema = z.object({
   weight_kg: z.coerce.number().min(20).max(300).optional(),
   body_fat_pct: z.coerce.number().min(1).max(60).optional(),
@@ -59,5 +65,6 @@ export type GoalStepValues = z.infer<typeof goalStepSchema>
 export type MetricsStepValues = z.infer<typeof metricsStepSchema>
 export type PreferencesStepValues = z.infer<typeof preferencesStepSchema>
 export type WorkoutPlanOutput = z.infer<typeof workoutPlanOutputSchema>
+export type WorkoutPlanUpdateOutput = z.infer<typeof workoutPlanUpdateOutputSchema>
 export type BodyMetricFormValues = z.infer<typeof bodyMetricFormSchema>
 export type WorkoutFeedbackValues = z.infer<typeof workoutFeedbackSchema>

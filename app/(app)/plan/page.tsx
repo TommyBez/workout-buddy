@@ -11,7 +11,7 @@ async function PlanData() {
   const data = await getPlanData()
   if (!data) return null
 
-  const { activePlan, activeGoal, recentLogs } = data
+  const { activePlan, activeGoal } = data
 
   if (!activePlan) {
     return (
@@ -58,7 +58,7 @@ async function PlanData() {
           </Button>
         }
       />
-      <PlanOverview plan={activePlan} goal={activeGoal} recentLogs={recentLogs} />
+      <PlanOverview plan={activePlan} goal={activeGoal} />
     </div>
   )
 }

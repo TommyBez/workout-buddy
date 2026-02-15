@@ -17,7 +17,8 @@ import { MessageSquare, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { savePlan } from "@/app/actions/plan"
-import type { FitnessGoal, WorkoutPlan, WorkoutLog } from "@/lib/types"
+import type { FitnessGoal, WorkoutPlan } from "@/lib/types"
+import type { WorkoutPlanOutput } from "@/lib/schemas"
 
 const QUICK_FEEDBACK = [
   "Too easy overall",
@@ -31,10 +32,16 @@ const QUICK_FEEDBACK = [
 interface PlanFeedbackDrawerProps {
   plan: WorkoutPlan
   goal: FitnessGoal | null
-  recentLogs: WorkoutLog[]
 }
 
-export function PlanFeedbackDrawer({ plan, goal, recentLogs }: PlanFeedbackDrawerProps) {
+interface UpdatePlanResponse {
+  action: "update_current_plan" | "generate_new_plan"
+  rationale: string
+  plan: WorkoutPlanOutput
+  error?: string
+}
+
+export function PlanFeedbackDrawer({ plan, goal }: PlanFeedbackDrawerProps) {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [feedback, setFeedback] = useState("")
@@ -53,44 +60,27 @@ export function PlanFeedbackDrawer({ plan, goal, recentLogs }: PlanFeedbackDrawe
 
     setIsSubmitting(true)
     try {
-      const avgDifficulty = recentLogs.length > 0
-        ? recentLogs.reduce((sum, l) => sum + (plan.difficulty_rating || 3), 0) / recentLogs.length
-        : 3
-
-      const response = await fetch("/api/generate-plan", {
+      const response = await fetch("/api/update-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          goal: { goal_type: goal?.goal_type ?? "general_fitness" },
-          metrics: {
-            weight_kg: 75,
-            experience_level: "intermediate",
-          },
-          preferences: {
-            days_per_week: goal?.days_per_week ?? plan.plan_data.days.length,
-            session_duration_min: goal?.session_duration_min ?? 60,
-            equipment_access: goal?.equipment_access ?? ["barbell", "dumbbells", "machines"],
-            focus_areas: goal?.focus_areas ?? ["chest", "back", "legs"],
-          },
           feedback: combined,
-          recentLogs: {
-            count: recentLogs.length,
-            avgDifficulty,
-          },
         }),
       })
 
-      if (!response.ok) throw new Error("Failed")
-
-      const data = await response.json()
+      const data = (await response.json()) as UpdatePlanResponse
+      if (!response.ok) throw new Error(data.error ?? "Failed")
 
       await savePlan({
-        goalId: goal?.id ?? plan.goal_id ?? "",
+        goalId: goal?.id ?? plan.goal_id,
         planOutput: data.plan,
         weekNumber: plan.week_number + 1,
       })
 
-      toast.success("Plan updated based on your feedback!")
+      const message = data.action === "generate_new_plan"
+        ? "Generated a new plan based on your last 2 months of logs."
+        : "Plan updated based on your last 2 months of logs."
+      toast.success(message)
       setIsOpen(false)
       setFeedback("")
       setSelectedQuick([])

@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server"
 import type { WorkoutPlanOutput } from "@/lib/schemas"
 
 interface SavePlanInput {
-  goalId: string
+  goalId?: string | null
   planOutput: WorkoutPlanOutput
   weekNumber?: number
 }
@@ -27,7 +27,7 @@ export async function savePlan({ goalId, planOutput, weekNumber = 1 }: SavePlanI
     .from("workout_plans")
     .insert({
       user_id: user.id,
-      goal_id: goalId,
+      goal_id: goalId ?? null,
       name: planOutput.name,
       description: planOutput.description,
       plan_data: { days: planOutput.days },
