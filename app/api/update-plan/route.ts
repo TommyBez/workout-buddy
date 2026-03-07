@@ -531,7 +531,7 @@ Return:
 - plan: the updated/generated weekly plan`
 
     const { output } = await generateText({
-      model: "google/gemini-3-flash",
+      model: "openai/gpt-5.4",
       output: Output.object({ schema: workoutPlanUpdateOutputSchema }),
       system: systemPrompt,
       prompt,
