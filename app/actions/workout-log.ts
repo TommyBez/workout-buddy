@@ -2,7 +2,6 @@
 
 import { updateTag } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
-import { insertWorkoutLogWithCompatibility } from "@/lib/workout-log-compat"
 import type { LoggedExercise } from "@/lib/types"
 
 interface SaveWorkoutLogInput {
@@ -23,15 +22,19 @@ export async function saveWorkoutLog(input: SaveWorkoutLogInput) {
 
   if (!user) throw new Error(authError?.message || "Not authenticated")
 
-  const { data, error } = await insertWorkoutLogWithCompatibility(supabase, {
-    userId: user.id,
-    planId: input.planId,
-    workoutDay: input.workoutDay,
-    exercises: input.exercises,
-    durationMin: input.durationMin,
-    difficultyRating: input.difficultyRating,
-    notes: input.notes,
-  })
+  const { data, error } = await supabase
+    .from("workout_logs")
+    .insert({
+      user_id: user.id,
+      plan_id: input.planId,
+      workout_day: input.workoutDay,
+      exercises: input.exercises,
+      duration_min: input.durationMin,
+      difficulty_rating: input.difficultyRating || null,
+      notes: input.notes || null,
+    })
+    .select()
+    .single()
 
   if (error) throw new Error(error.message || "Failed to save workout log")
 

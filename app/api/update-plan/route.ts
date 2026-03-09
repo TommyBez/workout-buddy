@@ -2,7 +2,6 @@ import { generateText, Output } from "ai"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
 import { workoutPlanUpdateOutputSchema } from "@/lib/schemas"
-import { fetchWorkoutLogsForPlanUpdate } from "@/lib/workout-log-compat"
 
 const LOOKBACK_MONTHS = 2
 
@@ -298,7 +297,13 @@ export async function POST(req: Request) {
           .select("experience_level, height_cm")
           .eq("id", user.id)
           .maybeSingle(),
-        fetchWorkoutLogsForPlanUpdate(supabase, user.id, lookbackIso),
+        supabase
+          .from("workout_logs")
+          .select("workout_day, completed_at, duration_min, difficulty_rating, notes, exercises")
+          .eq("user_id", user.id)
+          .gte("completed_at", lookbackIso)
+          .order("completed_at", { ascending: true })
+          .limit(120),
         supabase
           .from("body_metrics")
           .select(
