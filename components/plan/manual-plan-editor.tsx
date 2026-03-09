@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { Loader2, PencilLine, Plus, Trash2 } from "lucide-react"
 import { toast } from "sonner"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -13,6 +14,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -98,6 +108,7 @@ export function ManualPlanEditor({
   errorMessage = "Failed to save plan changes.",
   triggerClassName,
 }: ManualPlanEditorProps) {
+  const isMobile = useIsMobile()
   const [isOpen, setIsOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [draft, setDraft] = useState<WorkoutPlanOutput>(() => clonePlan(plan))
@@ -201,22 +212,288 @@ export function ManualPlanEditor({
     }
   }
 
+  const trigger = (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className={cn(
+        "gap-2 border-border/80 transition-all duration-300 hover:border-primary/20 hover:bg-primary/5",
+        triggerClassName
+      )}
+    >
+      <PencilLine className="h-4 w-4" />
+      {triggerLabel}
+    </Button>
+  )
+
+  const formFields = (
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="plan-name" className="text-xs uppercase tracking-wider text-muted-foreground">
+            Plan name
+          </Label>
+          <Input
+            id="plan-name"
+            value={draft.name}
+            onChange={(event) => updatePlanField("name", event.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="plan-description" className="text-xs uppercase tracking-wider text-muted-foreground">
+            Description
+          </Label>
+          <Textarea
+            id="plan-description"
+            value={draft.description}
+            onChange={(event) => updatePlanField("description", event.target.value)}
+            className="min-h-[96px]"
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Workout Days</p>
+          <p className="text-sm text-muted-foreground">Edit each day or add a new one.</p>
+        </div>
+
+        <Button type="button" variant="outline" size="sm" onClick={addDay}>
+          <Plus className="h-4 w-4" />
+          Add day
+        </Button>
+      </div>
+
+      <div className="space-y-4">
+        {draft.days.map((day, dayIndex) => (
+          <section key={dayIndex} className="rounded-xl border border-border bg-background/40 p-4">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Day {dayIndex + 1}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {day.exercises.length} exercise{day.exercises.length === 1 ? "" : "s"}
+                </p>
+              </div>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removeDay(dayIndex)}
+                disabled={draft.days.length === 1}
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+                Remove day
+              </Button>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Day name</Label>
+                <Input
+                  value={day.name}
+                  onChange={(event) => updateDayField(dayIndex, "name", event.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Focus</Label>
+                <Input
+                  value={day.focus}
+                  onChange={(event) => updateDayField(dayIndex, "focus", event.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Warmup</Label>
+                <Textarea
+                  value={day.warmup}
+                  onChange={(event) => updateDayField(dayIndex, "warmup", event.target.value)}
+                  className="min-h-[88px]"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs uppercase tracking-wider text-muted-foreground">Cooldown</Label>
+                <Textarea
+                  value={day.cooldown}
+                  onChange={(event) => updateDayField(dayIndex, "cooldown", event.target.value)}
+                  className="min-h-[88px]"
+                />
+              </div>
+            </div>
+
+            <div className="mt-5 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Exercises
+                </p>
+                <p className="text-sm text-muted-foreground">Adjust sets, reps, rest, or alternatives.</p>
+              </div>
+
+              <Button type="button" variant="outline" size="sm" onClick={() => addExercise(dayIndex)}>
+                <Plus className="h-4 w-4" />
+                Add exercise
+              </Button>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {day.exercises.map((exercise, exerciseIndex) => (
+                <div
+                  key={`${dayIndex}-${exerciseIndex}`}
+                  className="rounded-xl border border-border/70 bg-card p-4"
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <p className="text-sm font-medium text-foreground">Exercise {exerciseIndex + 1}</p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeExercise(dayIndex, exerciseIndex)}
+                      disabled={day.exercises.length === 1}
+                      className="text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Remove
+                    </Button>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                        Exercise name
+                      </Label>
+                      <Input
+                        value={exercise.name}
+                        onChange={(event) =>
+                          updateExerciseField(dayIndex, exerciseIndex, "name", event.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Sets</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        value={exercise.sets}
+                        onChange={(event) =>
+                          updateExerciseField(dayIndex, exerciseIndex, "sets", Number(event.target.value))
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Reps</Label>
+                      <Input
+                        value={exercise.reps}
+                        onChange={(event) =>
+                          updateExerciseField(dayIndex, exerciseIndex, "reps", event.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                        Rest (sec)
+                      </Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        step={15}
+                        value={exercise.rest_sec}
+                        onChange={(event) =>
+                          updateExerciseField(dayIndex, exerciseIndex, "rest_sec", Number(event.target.value))
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Notes</Label>
+                      <Textarea
+                        value={exercise.notes ?? ""}
+                        onChange={(event) =>
+                          updateExerciseField(dayIndex, exerciseIndex, "notes", event.target.value || null)
+                        }
+                        className="min-h-[88px]"
+                        placeholder="Optional coaching notes or cues."
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+                        Alternatives
+                      </Label>
+                      <Textarea
+                        value={exercise.alternatives.join(", ")}
+                        onChange={(event) =>
+                          updateExerciseField(
+                            dayIndex,
+                            exerciseIndex,
+                            "alternatives",
+                            event.target.value.split(",").map((value) => value.trim()).filter(Boolean)
+                          )
+                        }
+                        className="min-h-[88px]"
+                        placeholder="Separate alternatives with commas."
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+  )
+
+  const actions = (
+    <>
+      <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isSaving}>
+        Cancel
+      </Button>
+      <Button type="button" onClick={handleSave} disabled={isSaving}>
+        {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+        {saveLabel}
+      </Button>
+    </>
+  )
+
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={setIsOpen}>
+        <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+        <DrawerContent className="h-[92dvh] max-h-[92dvh] border-border bg-card">
+          <DrawerHeader className="border-b border-border px-4 pb-4">
+            <DrawerTitle className="font-display text-2xl uppercase tracking-wide">{title}</DrawerTitle>
+            <DrawerDescription>{description}</DrawerDescription>
+          </DrawerHeader>
+
+          <div className="overflow-y-auto px-4 pb-2 pt-4">
+            {formFields}
+          </div>
+
+          <DrawerFooter className="border-t border-border bg-card pb-4">
+            {actions}
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    )
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className={cn(
-            "gap-2 border-border/80 transition-all duration-300 hover:border-primary/20 hover:bg-primary/5",
-            triggerClassName
-          )}
-        >
-          <PencilLine className="h-4 w-4" />
-          {triggerLabel}
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
 
       <DialogContent className="max-h-[90vh] max-w-4xl gap-0 overflow-hidden border-border bg-card p-0">
         <DialogHeader className="border-b border-border px-6 py-5">
@@ -225,243 +502,11 @@ export function ManualPlanEditor({
         </DialogHeader>
 
         <div className="max-h-[calc(90vh-148px)] overflow-y-auto px-6 py-5">
-          <div className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="plan-name" className="text-xs uppercase tracking-wider text-muted-foreground">
-                  Plan name
-                </Label>
-                <Input
-                  id="plan-name"
-                  value={draft.name}
-                  onChange={(event) => updatePlanField("name", event.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="plan-description" className="text-xs uppercase tracking-wider text-muted-foreground">
-                  Description
-                </Label>
-                <Textarea
-                  id="plan-description"
-                  value={draft.description}
-                  onChange={(event) => updatePlanField("description", event.target.value)}
-                  className="min-h-[96px]"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Workout Days</p>
-                <p className="text-sm text-muted-foreground">Edit each day or add a new one.</p>
-              </div>
-
-              <Button type="button" variant="outline" size="sm" onClick={addDay}>
-                <Plus className="h-4 w-4" />
-                Add day
-              </Button>
-            </div>
-
-            <div className="space-y-4">
-              {draft.days.map((day, dayIndex) => (
-                <section key={dayIndex} className="rounded-xl border border-border bg-background/40 p-4">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Day {dayIndex + 1}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {day.exercises.length} exercise{day.exercises.length === 1 ? "" : "s"}
-                      </p>
-                    </div>
-
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeDay(dayIndex)}
-                      disabled={draft.days.length === 1}
-                      className="text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Remove day
-                    </Button>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Day name</Label>
-                      <Input
-                        value={day.name}
-                        onChange={(event) => updateDayField(dayIndex, "name", event.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Focus</Label>
-                      <Input
-                        value={day.focus}
-                        onChange={(event) => updateDayField(dayIndex, "focus", event.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mt-4 grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Warmup</Label>
-                      <Textarea
-                        value={day.warmup}
-                        onChange={(event) => updateDayField(dayIndex, "warmup", event.target.value)}
-                        className="min-h-[88px]"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-xs uppercase tracking-wider text-muted-foreground">Cooldown</Label>
-                      <Textarea
-                        value={day.cooldown}
-                        onChange={(event) => updateDayField(dayIndex, "cooldown", event.target.value)}
-                        className="min-h-[88px]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mt-5 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Exercises
-                      </p>
-                      <p className="text-sm text-muted-foreground">Adjust sets, reps, rest, or alternatives.</p>
-                    </div>
-
-                    <Button type="button" variant="outline" size="sm" onClick={() => addExercise(dayIndex)}>
-                      <Plus className="h-4 w-4" />
-                      Add exercise
-                    </Button>
-                  </div>
-
-                  <div className="mt-4 space-y-3">
-                    {day.exercises.map((exercise, exerciseIndex) => (
-                      <div
-                        key={`${dayIndex}-${exerciseIndex}`}
-                        className="rounded-xl border border-border/70 bg-card p-4"
-                      >
-                        <div className="mb-3 flex items-center justify-between">
-                          <p className="text-sm font-medium text-foreground">Exercise {exerciseIndex + 1}</p>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeExercise(dayIndex, exerciseIndex)}
-                            disabled={day.exercises.length === 1}
-                            className="text-muted-foreground hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Remove
-                          </Button>
-                        </div>
-
-                        <div className="grid gap-4 md:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
-                          <div className="space-y-2">
-                            <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                              Exercise name
-                            </Label>
-                            <Input
-                              value={exercise.name}
-                              onChange={(event) =>
-                                updateExerciseField(dayIndex, exerciseIndex, "name", event.target.value)
-                              }
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Sets</Label>
-                            <Input
-                              type="number"
-                              min={1}
-                              value={exercise.sets}
-                              onChange={(event) =>
-                                updateExerciseField(dayIndex, exerciseIndex, "sets", Number(event.target.value))
-                              }
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Reps</Label>
-                            <Input
-                              value={exercise.reps}
-                              onChange={(event) =>
-                                updateExerciseField(dayIndex, exerciseIndex, "reps", event.target.value)
-                              }
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                              Rest (sec)
-                            </Label>
-                            <Input
-                              type="number"
-                              min={0}
-                              step={15}
-                              value={exercise.rest_sec}
-                              onChange={(event) =>
-                                updateExerciseField(dayIndex, exerciseIndex, "rest_sec", Number(event.target.value))
-                              }
-                            />
-                          </div>
-                        </div>
-
-                        <div className="mt-4 grid gap-4 md:grid-cols-2">
-                          <div className="space-y-2">
-                            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Notes</Label>
-                            <Textarea
-                              value={exercise.notes ?? ""}
-                              onChange={(event) =>
-                                updateExerciseField(dayIndex, exerciseIndex, "notes", event.target.value || null)
-                              }
-                              className="min-h-[88px]"
-                              placeholder="Optional coaching notes or cues."
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label className="text-xs uppercase tracking-wider text-muted-foreground">
-                              Alternatives
-                            </Label>
-                            <Textarea
-                              value={exercise.alternatives.join(", ")}
-                              onChange={(event) =>
-                                updateExerciseField(
-                                  dayIndex,
-                                  exerciseIndex,
-                                  "alternatives",
-                                  event.target.value.split(",").map((value) => value.trim()).filter(Boolean)
-                                )
-                              }
-                              className="min-h-[88px]"
-                              placeholder="Separate alternatives with commas."
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-          </div>
+          {formFields}
         </div>
 
         <DialogFooter className="border-t border-border px-6 py-4">
-          <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isSaving}>
-            Cancel
-          </Button>
-          <Button type="button" onClick={handleSave} disabled={isSaving}>
-            {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-            {saveLabel}
-          </Button>
+          {actions}
         </DialogFooter>
       </DialogContent>
     </Dialog>
