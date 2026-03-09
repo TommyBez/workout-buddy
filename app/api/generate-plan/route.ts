@@ -13,6 +13,7 @@ const generatePlanRequestSchema = z.object({
   }),
   metrics: metricsStepSchema,
   preferences: preferencesStepSchema,
+  note: z.string().max(500).optional(),
 })
 
 const goalDescriptions: Record<string, string> = {
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const { goal, metrics, preferences } = parsed.data
+    const { goal, metrics, preferences, note } = parsed.data
 
     const systemPrompt = `You are an expert personal trainer and strength & conditioning coach.
 
@@ -63,6 +64,7 @@ Output expectations:
 
 The user is a ${metrics.experience_level} lifter, weighing ${metrics.weight_kg}kg${metrics.height_cm ? `, ${metrics.height_cm}cm tall` : ""}.
 ${goal.target_weight_kg ? `Their target weight is ${goal.target_weight_kg}kg.` : ""}
+${note ? `\nAdditional notes from the user: "${note}"` : ""}
 
 Give each day a clear name like "Day 1 - Push" or "Day 1 - Upper Body".`
 

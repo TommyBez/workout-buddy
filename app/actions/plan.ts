@@ -115,3 +115,31 @@ export async function saveInitialMetrics(metricsData: {
   updateTag("dashboard")
   updateTag("body-metrics")
 }
+
+export async function deletePlan(planId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error("Not authenticated")
+
+  // Delete workout logs associated with this plan first
+  await supabase
+    .from("workout_logs")
+    .delete()
+    .eq("plan_id", planId)
+    .eq("user_id", user.id)
+
+  // Delete the plan
+  const { error } = await supabase
+    .from("workout_plans")
+    .delete()
+    .eq("id", planId)
+    .eq("user_id", user.id)
+
+  if (error) throw new Error(error.message)
+
+  // Immediate invalidation
+  updateTag("plan")
+  updateTag("workout-plans")
+  updateTag("workout-logs")
+  updateTag("dashboard")
+}

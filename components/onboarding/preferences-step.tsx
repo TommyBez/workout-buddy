@@ -2,6 +2,7 @@
 
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
+import { Textarea } from "@/components/ui/textarea"
 import { EQUIPMENT_OPTIONS, FOCUS_AREAS } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 import { Check } from "lucide-react"
@@ -11,10 +12,12 @@ interface PreferencesStepProps {
   sessionDuration: number
   equipment: string[]
   focusAreas: string[]
+  note: string
   onDaysChange: (value: number) => void
   onDurationChange: (value: number) => void
   onEquipmentToggle: (value: string) => void
   onFocusToggle: (value: string) => void
+  onNoteChange: (value: string) => void
 }
 
 export function PreferencesStep({
@@ -22,10 +25,12 @@ export function PreferencesStep({
   sessionDuration,
   equipment,
   focusAreas,
+  note,
   onDaysChange,
   onDurationChange,
   onEquipmentToggle,
   onFocusToggle,
+  onNoteChange,
 }: PreferencesStepProps) {
   return (
     <div className="flex flex-col gap-6">
@@ -122,6 +127,21 @@ export function PreferencesStep({
             )
           })}
         </div>
+      </div>
+
+      <div className="animate-fade-up delay-500 space-y-3">
+        <Label htmlFor="note" className="text-xs uppercase tracking-wider text-muted-foreground">
+          Additional Notes (Optional)
+        </Label>
+        <Textarea
+          id="note"
+          placeholder="Any injuries, preferences, or specific requests? e.g., 'I have a bad knee' or 'I prefer supersets'"
+          value={note}
+          onChange={(e) => onNoteChange(e.target.value)}
+          className="min-h-[80px] resize-none border-border/80 bg-card text-sm placeholder:text-muted-foreground/60"
+          maxLength={500}
+        />
+        <p className="text-xs text-muted-foreground">{note.length}/500 characters</p>
       </div>
     </div>
   )

@@ -35,6 +35,7 @@ export default function GeneratePlanPage() {
   const [sessionDuration, setSessionDuration] = useState(60)
   const [equipment, setEquipment] = useState<string[]>(["barbell", "dumbbells", "bench"])
   const [focusAreas, setFocusAreas] = useState<string[]>([])
+  const [note, setNote] = useState("")
 
   const handleEquipmentToggle = useCallback((value: string) => {
     setEquipment((prev) =>
@@ -76,6 +77,7 @@ export default function GeneratePlanPage() {
             equipment_access: equipment,
             focus_areas: focusAreas,
           },
+          note: note.trim() || undefined,
         }),
       })
 
@@ -176,10 +178,12 @@ export default function GeneratePlanPage() {
             sessionDuration={sessionDuration}
             equipment={equipment}
             focusAreas={focusAreas}
+            note={note}
             onDaysChange={setDaysPerWeek}
             onDurationChange={setSessionDuration}
             onEquipmentToggle={handleEquipmentToggle}
             onFocusToggle={handleFocusToggle}
+            onNoteChange={setNote}
           />
         )}
         {step === 3 && isGenerating && (
