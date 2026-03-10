@@ -16,6 +16,7 @@ export async function saveBodyMetric(values: BodyMetricFormValues) {
       weight_kg: values.weight_kg || null,
       body_fat_pct: values.body_fat_pct || null,
       chest_cm: values.chest_cm || null,
+      shoulders_cm: values.shoulders_cm || null,
       waist_cm: values.waist_cm || null,
       hips_cm: values.hips_cm || null,
       bicep_cm: values.bicep_cm || null,

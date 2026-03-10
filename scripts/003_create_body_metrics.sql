@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS public.body_metrics (
   weight_kg NUMERIC,
   body_fat_pct NUMERIC,
   chest_cm NUMERIC,
+  shoulders_cm NUMERIC,
   waist_cm NUMERIC,
   hips_cm NUMERIC,
   bicep_cm NUMERIC,

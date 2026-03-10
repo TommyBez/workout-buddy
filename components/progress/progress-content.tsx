@@ -15,6 +15,19 @@ interface ProgressContentProps {
 
 const TABS = ["Body", "Workouts"] as const
 
+function getMeasurementBadges(metric: BodyMetric) {
+  return [
+    metric.weight_kg !== null ? `${Number(metric.weight_kg)} kg` : null,
+    metric.body_fat_pct !== null ? `${Number(metric.body_fat_pct)}% bf` : null,
+    metric.chest_cm !== null ? `Chest ${Number(metric.chest_cm)} cm` : null,
+    metric.shoulders_cm !== null ? `Shoulders ${Number(metric.shoulders_cm)} cm` : null,
+    metric.waist_cm !== null ? `Waist ${Number(metric.waist_cm)} cm` : null,
+    metric.hips_cm !== null ? `Hips ${Number(metric.hips_cm)} cm` : null,
+    metric.bicep_cm !== null ? `Bicep ${Number(metric.bicep_cm)} cm` : null,
+    metric.thigh_cm !== null ? `Thigh ${Number(metric.thigh_cm)} cm` : null,
+  ].filter((value): value is string => value !== null)
+}
+
 export function ProgressContent({ metrics, logs }: ProgressContentProps) {
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("Body")
 
@@ -73,13 +86,15 @@ export function ProgressContent({ metrics, logs }: ProgressContentProps) {
                       year: "numeric",
                     })}
                   </span>
-                  <div className="flex gap-4 text-sm">
-                    {m.weight_kg && (
-                      <span className="font-mono text-foreground">{Number(m.weight_kg)} kg</span>
-                    )}
-                    {m.body_fat_pct && (
-                      <span className="font-mono text-muted-foreground">{Number(m.body_fat_pct)}% bf</span>
-                    )}
+                  <div className="flex flex-wrap justify-end gap-2 text-sm">
+                    {getMeasurementBadges(m).map((label) => (
+                      <span
+                        key={`${m.id}-${label}`}
+                        className="rounded-full border border-border/80 bg-secondary/60 px-2 py-1 font-mono text-xs text-foreground"
+                      >
+                        {label}
+                      </span>
+                    ))}
                   </div>
                 </div>
               ))}
