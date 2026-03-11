@@ -50,6 +50,7 @@ export const bodyMetricFormSchema = z.object({
   weight_kg: z.coerce.number().min(20).max(300).optional(),
   body_fat_pct: z.coerce.number().min(1).max(60).optional(),
   chest_cm: z.coerce.number().min(50).max(200).optional(),
+  shoulders_cm: z.coerce.number().min(60).max(220).optional(),
   waist_cm: z.coerce.number().min(40).max(200).optional(),
   hips_cm: z.coerce.number().min(50).max(200).optional(),
   bicep_cm: z.coerce.number().min(15).max(60).optional(),

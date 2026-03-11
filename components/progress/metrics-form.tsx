@@ -24,6 +24,7 @@ export function MetricsForm() {
   const [weight, setWeight] = useState("")
   const [bodyFat, setBodyFat] = useState("")
   const [chest, setChest] = useState("")
+  const [shoulders, setShoulders] = useState("")
   const [waist, setWaist] = useState("")
   const [hips, setHips] = useState("")
   const [bicep, setBicep] = useState("")
@@ -36,6 +37,7 @@ export function MetricsForm() {
         weight_kg: weight ? parseFloat(weight) : undefined,
         body_fat_pct: bodyFat ? parseFloat(bodyFat) : undefined,
         chest_cm: chest ? parseFloat(chest) : undefined,
+        shoulders_cm: shoulders ? parseFloat(shoulders) : undefined,
         waist_cm: waist ? parseFloat(waist) : undefined,
         hips_cm: hips ? parseFloat(hips) : undefined,
         bicep_cm: bicep ? parseFloat(bicep) : undefined,
@@ -56,6 +58,7 @@ export function MetricsForm() {
     setWeight("")
     setBodyFat("")
     setChest("")
+    setShoulders("")
     setWaist("")
     setHips("")
     setBicep("")
@@ -113,6 +116,7 @@ export function MetricsForm() {
           <div className="grid grid-cols-3 gap-3">
             {[
               { label: "Chest", value: chest, setter: setChest, id: "m-chest" },
+              { label: "Shoulders", value: shoulders, setter: setShoulders, id: "m-shoulders" },
               { label: "Waist", value: waist, setter: setWaist, id: "m-waist" },
               { label: "Hips", value: hips, setter: setHips, id: "m-hips" },
               { label: "Bicep", value: bicep, setter: setBicep, id: "m-bicep" },

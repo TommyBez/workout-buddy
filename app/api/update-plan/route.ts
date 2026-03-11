@@ -64,6 +64,7 @@ interface BodyMetricRow {
   weight_kg: number | string | null
   body_fat_pct: number | string | null
   chest_cm: number | string | null
+  shoulders_cm: number | string | null
   waist_cm: number | string | null
   hips_cm: number | string | null
   bicep_cm: number | string | null
@@ -194,6 +195,8 @@ function summarizeBodyMetrics(metrics: BodyMetricRow[]) {
   const latestWaist = toNumber(latest.waist_cm)
   const firstChest = toNumber(first.chest_cm)
   const latestChest = toNumber(latest.chest_cm)
+  const firstShoulders = toNumber(first.shoulders_cm)
+  const latestShoulders = toNumber(latest.shoulders_cm)
   const firstBicep = toNumber(first.bicep_cm)
   const latestBicep = toNumber(latest.bicep_cm)
   const firstThigh = toNumber(first.thigh_cm)
@@ -207,6 +210,7 @@ function summarizeBodyMetrics(metrics: BodyMetricRow[]) {
       weight_kg: latestWeight,
       body_fat_pct: latestBodyFat,
       chest_cm: toNumber(latest.chest_cm),
+      shoulders_cm: latestShoulders,
       waist_cm: latestWaist,
       hips_cm: toNumber(latest.hips_cm),
       bicep_cm: toNumber(latest.bicep_cm),
@@ -228,6 +232,10 @@ function summarizeBodyMetrics(metrics: BodyMetricRow[]) {
       chest_cm:
         firstChest !== null && latestChest !== null
           ? round(latestChest - firstChest, 2)
+          : null,
+      shoulders_cm:
+        firstShoulders !== null && latestShoulders !== null
+          ? round(latestShoulders - firstShoulders, 2)
           : null,
       bicep_cm:
         firstBicep !== null && latestBicep !== null
@@ -307,7 +315,7 @@ export async function POST(req: Request) {
         supabase
           .from("body_metrics")
           .select(
-            "recorded_at, weight_kg, body_fat_pct, chest_cm, waist_cm, hips_cm, bicep_cm, thigh_cm"
+            "recorded_at, weight_kg, body_fat_pct, chest_cm, shoulders_cm, waist_cm, hips_cm, bicep_cm, thigh_cm"
           )
           .eq("user_id", user.id)
           .gte("recorded_at", lookbackDateOnly)
@@ -405,6 +413,7 @@ export async function POST(req: Request) {
       weight_kg: toNumber(metric.weight_kg),
       body_fat_pct: toNumber(metric.body_fat_pct),
       chest_cm: toNumber(metric.chest_cm),
+      shoulders_cm: toNumber(metric.shoulders_cm),
       waist_cm: toNumber(metric.waist_cm),
       hips_cm: toNumber(metric.hips_cm),
       bicep_cm: toNumber(metric.bicep_cm),

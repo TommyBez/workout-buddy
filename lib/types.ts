@@ -31,6 +31,7 @@ export interface BodyMetric {
   weight_kg: number | null
   body_fat_pct: number | null
   chest_cm: number | null
+  shoulders_cm: number | null
   waist_cm: number | null
   hips_cm: number | null
   bicep_cm: number | null
