@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import type { WorkoutPlan, BodyMetric, WorkoutLog } from "@/lib/types"
+import { getNextWorkoutDayIndex } from "@/lib/data/dashboard"
 import { WorkoutDayCard } from "@/components/workout/workout-day-card"
 import { Button } from "@/components/ui/button"
 import { Dumbbell, Scale, Flame, TrendingUp, Plus, ArrowRight } from "lucide-react"
@@ -10,12 +11,14 @@ interface DashboardContentProps {
   activePlan: WorkoutPlan | null
   latestMetric: BodyMetric | null
   weeklyLogs: WorkoutLog[]
+  lastLoggedDayName: string | null
 }
 
 export function DashboardContent({
   activePlan,
   latestMetric,
   weeklyLogs,
+  lastLoggedDayName,
 }: DashboardContentProps) {
   if (!activePlan) {
     return (
@@ -44,7 +47,8 @@ export function DashboardContent({
   }
 
   const planData = activePlan.plan_data
-  const todayDayIndex = getTodayWorkoutIndex(planData.days.length, weeklyLogs.length)
+  const dayNames = planData.days.map((d) => d.name)
+  const todayDayIndex = getNextWorkoutDayIndex(dayNames, lastLoggedDayName)
   const todayWorkout = planData.days[todayDayIndex]
 
   return (
@@ -118,8 +122,4 @@ export function DashboardContent({
       )}
     </div>
   )
-}
-
-function getTodayWorkoutIndex(totalDays: number, logsThisWeek: number): number {
-  return logsThisWeek % totalDays
 }

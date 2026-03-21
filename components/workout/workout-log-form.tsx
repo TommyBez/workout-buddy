@@ -5,6 +5,13 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { ExerciseLogForm } from "@/components/workout/exercise-log-form"
 import { DifficultyRating } from "@/components/workout/difficulty-rating"
 import { saveWorkoutLog } from "@/app/actions/workout-log"
@@ -16,13 +23,18 @@ import type { WorkoutPlan, LoggedExercise, LoggedSet, WorkoutLog } from "@/lib/t
 
 interface WorkoutLogFormProps {
   activePlan: WorkoutPlan | null
-  weeklyLogCount: number
-  lastLogForDay?: WorkoutLog | null
+  suggestedDayIndex: number
+  lastLogsPerDay: Record<string, WorkoutLog>
 }
 
-export function WorkoutLogForm({ activePlan, weeklyLogCount, lastLogForDay }: WorkoutLogFormProps) {
+export function WorkoutLogForm({
+  activePlan,
+  suggestedDayIndex,
+  lastLogsPerDay,
+}: WorkoutLogFormProps) {
   const router = useRouter()
   const [isSaving, setIsSaving] = useState(false)
+  const [selectedDayIndex, setSelectedDayIndex] = useState(suggestedDayIndex)
 
   // Granular selectors — only re-render when the specific slice changes
   const planId = useWorkoutLogSessionStore((s) => s.planId)
@@ -39,15 +51,13 @@ export function WorkoutLogForm({ activePlan, weeklyLogCount, lastLogForDay }: Wo
   const setExerciseSets = useWorkoutLogSessionStore((s) => s.setExerciseSets)
   const clearSession = useWorkoutLogSessionStore((s) => s.clearSession)
 
-  const todayDayIndex = activePlan
-    ? weeklyLogCount % activePlan.plan_data.days.length
-    : 0
-  const todayWorkout = activePlan?.plan_data.days[todayDayIndex]
+  const selectedWorkout = activePlan?.plan_data.days[selectedDayIndex]
+  const lastLogForDay = selectedWorkout ? lastLogsPerDay[selectedWorkout.name] : null
 
   const initialSets = useMemo(() => {
-    if (!todayWorkout) return {}
+    if (!selectedWorkout) return {}
     const map: Record<string, LoggedSet[]> = {}
-    todayWorkout.exercises.forEach((ex) => {
+    selectedWorkout.exercises.forEach((ex) => {
       map[ex.name] = Array.from({ length: ex.sets }, () => ({
         weight_kg: 0,
         reps: 0,
@@ -55,26 +65,33 @@ export function WorkoutLogForm({ activePlan, weeklyLogCount, lastLogForDay }: Wo
       }))
     })
     return map
-  }, [todayWorkout])
+  }, [selectedWorkout])
 
   // Wait for hydration before deciding whether to init a fresh session.
-  // Without this guard, the effect fires with default state (planId=null),
-  // sees a mismatch, and overwrites the persisted session.
   useEffect(() => {
     if (!hasHydrated) return
-    if (!todayWorkout || !activePlan) return
+    if (!selectedWorkout || !activePlan) return
 
-    const matchesSession = planId === activePlan.id && workoutDayName === todayWorkout.name
+    const matchesSession =
+      planId === activePlan.id && workoutDayName === selectedWorkout.name
     if (matchesSession) return
 
     initSession({
       planId: activePlan.id,
-      workoutDayName: todayWorkout.name,
+      workoutDayName: selectedWorkout.name,
       exerciseSets: initialSets,
       difficulty: 0,
       notes: "",
     })
-  }, [hasHydrated, activePlan?.id, todayWorkout?.name, planId, workoutDayName, initSession, initialSets])
+  }, [
+    hasHydrated,
+    activePlan?.id,
+    selectedWorkout?.name,
+    planId,
+    workoutDayName,
+    initSession,
+    initialSets,
+  ])
 
   const handleSetsChange = useCallback(
     (exerciseName: string, sets: LoggedSet[]) => {
@@ -83,11 +100,18 @@ export function WorkoutLogForm({ activePlan, weeklyLogCount, lastLogForDay }: Wo
     [updateExerciseSets]
   )
 
+  function handleDayChange(value: string) {
+    const newIndex = parseInt(value, 10)
+    setSelectedDayIndex(newIndex)
+    // Clear session so initSession effect picks up the new day
+    clearSession()
+  }
+
   function applyLastAsTemplate() {
-    if (!lastLogForDay || !todayWorkout) return
+    if (!lastLogForDay || !selectedWorkout) return
     const exercises = lastLogForDay.exercises ?? []
     const map: Record<string, LoggedSet[]> = {}
-    todayWorkout.exercises.forEach((ex) => {
+    selectedWorkout.exercises.forEach((ex) => {
       const lastEx = exercises.find((e) => e.name === ex.name)
       if (lastEx?.sets?.length) {
         map[ex.name] = Array.from(
@@ -110,7 +134,7 @@ export function WorkoutLogForm({ activePlan, weeklyLogCount, lastLogForDay }: Wo
   }
 
   async function handleSubmit() {
-    if (!todayWorkout || !activePlan) return
+    if (!selectedWorkout || !activePlan) return
     setIsSaving(true)
 
     const exercises: LoggedExercise[] = Object.entries(exerciseSets).map(
@@ -120,7 +144,7 @@ export function WorkoutLogForm({ activePlan, weeklyLogCount, lastLogForDay }: Wo
     try {
       await saveWorkoutLog({
         planId: activePlan.id,
-        workoutDay: todayWorkout.name,
+        workoutDay: selectedWorkout.name,
         exercises,
         durationMin: null,
         difficultyRating: difficulty,
@@ -137,13 +161,15 @@ export function WorkoutLogForm({ activePlan, weeklyLogCount, lastLogForDay }: Wo
     }
   }
 
-  if (!todayWorkout || !activePlan) {
+  if (!activePlan) {
     return (
       <div className="flex flex-col items-center gap-4 px-4 py-16 text-center">
         <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
           <Dumbbell className="h-7 w-7 text-primary" />
         </div>
-        <p className="text-muted-foreground">No active plan. Create a plan first to start logging.</p>
+        <p className="text-muted-foreground">
+          No active plan. Create a plan first to start logging.
+        </p>
       </div>
     )
   }
@@ -157,24 +183,74 @@ export function WorkoutLogForm({ activePlan, weeklyLogCount, lastLogForDay }: Wo
     )
   }
 
+  if (!selectedWorkout) {
+    return (
+      <div className="flex flex-col items-center gap-4 px-4 py-16 text-center">
+        <p className="text-muted-foreground">No workout day found.</p>
+      </div>
+    )
+  }
+
   const totalSets = Object.values(exerciseSets).flat()
   const completedSets = totalSets.filter((s) => s.completed).length
-  const completionPercent = totalSets.length > 0 ? (completedSets / totalSets.length) * 100 : 0
+  const completionPercent =
+    totalSets.length > 0 ? (completedSets / totalSets.length) * 100 : 0
 
   return (
     <div className="flex flex-col gap-4 px-4 pb-24">
-      {/* Workout summary card */}
+      {/* Workout selector & summary card */}
       <div className="animate-fade-up delay-100 forge-card rounded-xl border border-border bg-card p-4">
+        <div className="mb-3">
+          <Label
+            htmlFor="workout-day-select"
+            className="mb-1.5 block text-xs uppercase tracking-wider text-muted-foreground"
+          >
+            Workout Day
+          </Label>
+          <Select
+            value={String(selectedDayIndex)}
+            onValueChange={handleDayChange}
+          >
+            <SelectTrigger
+              id="workout-day-select"
+              className="w-full bg-background"
+            >
+              <SelectValue placeholder="Select workout day" />
+            </SelectTrigger>
+            <SelectContent>
+              {activePlan.plan_data.days.map((day, i) => (
+                <SelectItem key={i} value={String(i)}>
+                  <span className="font-medium">{day.name}</span>
+                  <span className="ml-2 text-muted-foreground">
+                    {day.focus}
+                  </span>
+                  {i === suggestedDayIndex && (
+                    <span className="ml-2 rounded bg-primary/10 px-1.5 py-0.5 text-xs text-primary">
+                      Suggested
+                    </span>
+                  )}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="relative flex items-center justify-between">
           <div>
-            <p className="font-semibold text-foreground">{todayWorkout.name}</p>
-            <p className="text-xs text-muted-foreground">{todayWorkout.focus}</p>
+            <p className="font-semibold text-foreground">
+              {selectedWorkout.name}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {selectedWorkout.focus}
+            </p>
           </div>
           <div className="text-right">
             <p className="font-display text-3xl text-primary">
               {completedSets}/{totalSets.length}
             </p>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">sets done</p>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              sets done
+            </p>
           </div>
         </div>
         {/* Progress bar */}
@@ -192,11 +268,14 @@ export function WorkoutLogForm({ activePlan, weeklyLogCount, lastLogForDay }: Wo
             <div className="flex items-center gap-2">
               <History className="h-4 w-4 text-primary/70" />
               <span className="text-sm font-medium text-foreground">
-                Last {todayWorkout.name} &middot;{" "}
-                {new Date(lastLogForDay.completed_at).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })}
+                Last {selectedWorkout.name} &middot;{" "}
+                {new Date(lastLogForDay.completed_at).toLocaleDateString(
+                  "en-US",
+                  {
+                    month: "short",
+                    day: "numeric",
+                  }
+                )}
               </span>
             </div>
             <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform [[data-state=open]_&]:rotate-180" />
@@ -209,7 +288,7 @@ export function WorkoutLogForm({ activePlan, weeklyLogCount, lastLogForDay }: Wo
                   <p className="font-mono text-xs text-muted-foreground">
                     {(ex.sets ?? [])
                       .filter((s) => s.weight_kg > 0 || s.reps > 0)
-                      .map((s, i) => `${s.weight_kg}kg × ${s.reps}`)
+                      .map((s) => `${s.weight_kg}kg x ${s.reps}`)
                       .join(" · ") || "—"}
                   </p>
                 </div>
@@ -227,8 +306,12 @@ export function WorkoutLogForm({ activePlan, weeklyLogCount, lastLogForDay }: Wo
         </Collapsible>
       )}
 
-      {todayWorkout.exercises.map((exercise, i) => (
-        <div key={exercise.name} className="animate-fade-up" style={{ animationDelay: `${150 + i * 50}ms` }}>
+      {selectedWorkout.exercises.map((exercise, i) => (
+        <div
+          key={exercise.name}
+          className="animate-fade-up"
+          style={{ animationDelay: `${150 + i * 50}ms` }}
+        >
           <ExerciseLogForm
             exercise={exercise}
             sets={exerciseSets[exercise.name] || []}
@@ -237,12 +320,25 @@ export function WorkoutLogForm({ activePlan, weeklyLogCount, lastLogForDay }: Wo
         </div>
       ))}
 
-      <div className="animate-fade-up" style={{ animationDelay: `${150 + todayWorkout.exercises.length * 50 + 50}ms` }}>
+      <div
+        className="animate-fade-up"
+        style={{
+          animationDelay: `${150 + selectedWorkout.exercises.length * 50 + 50}ms`,
+        }}
+      >
         <DifficultyRating value={difficulty} onChange={setDifficulty} />
       </div>
 
-      <div className="animate-fade-up space-y-2" style={{ animationDelay: `${150 + todayWorkout.exercises.length * 50 + 100}ms` }}>
-        <Label htmlFor="notes" className="text-xs uppercase tracking-wider text-muted-foreground">
+      <div
+        className="animate-fade-up space-y-2"
+        style={{
+          animationDelay: `${150 + selectedWorkout.exercises.length * 50 + 100}ms`,
+        }}
+      >
+        <Label
+          htmlFor="notes"
+          className="text-xs uppercase tracking-wider text-muted-foreground"
+        >
           Notes (optional)
         </Label>
         <Textarea

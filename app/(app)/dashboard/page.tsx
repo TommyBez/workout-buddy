@@ -36,6 +36,7 @@ async function DashboardData() {
       activePlan={data.activePlan}
       latestMetric={data.latestMetric}
       weeklyLogs={data.weeklyLogs}
+      lastLoggedDayName={data.lastLoggedDayName}
     />
   )
 }

@@ -6,17 +6,15 @@ import { WorkoutLogSkeleton } from "@/components/skeletons/workout-log-skeleton"
 import { getWorkoutLogData } from "@/lib/data/workout-log"
 
 async function WorkoutLogData() {
-  // Defer to request time so Date.now() is fresh (required for PPR)
   await connection()
-  const weekStartIso = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  const data = await getWorkoutLogData(weekStartIso)
+  const data = await getWorkoutLogData()
   if (!data) return null
 
   return (
     <WorkoutLogForm
       activePlan={data.activePlan}
-      weeklyLogCount={data.weeklyLogCount}
-      lastLogForDay={data.lastLogForDay}
+      suggestedDayIndex={data.suggestedDayIndex}
+      lastLogsPerDay={data.lastLogsPerDay}
     />
   )
 }
